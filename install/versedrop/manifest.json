@@ -1,0 +1,10 @@
+{
+	"id": "versedrop",
+	"name": "Versedrop",
+	"version": "0.5.0",
+	"minAppVersion": "1.4.0",
+	"description": "Search a Bible reference and insert it in Korean, English, Chinese, Japanese, Greek or Hebrew — public-domain texts, ESV and NET, your Accordance modules (Mac) or JSON files — with copyright notices and Logos/Accordance links.",
+	"author": "Paul Hong",
+	"authorUrl": "https://github.com/b2winus",
+	"isDesktopOnly": false
+}

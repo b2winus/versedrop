@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/33809341/README.md)
 # Versedrop
 
 Search a Bible reference and drop the passage into your note — in Korean, English, or both.
