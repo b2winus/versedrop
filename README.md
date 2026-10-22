@@ -54,6 +54,8 @@ Search a Bible reference and drop the passage into your note — in Korean, Engl
 
 ## Installation
 
+Requires **Obsidian 1.13 or later**.
+
 **From Community plugins** (once listed): Settings → Community plugins → Browse → search **Versedrop** → Install → Enable.
 
 **Manually:**
@@ -150,7 +152,7 @@ Suggested setup: <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> for the search win
 
 ### Chinese, Japanese, Greek and Hebrew
 
-Add them from the **Add a translation** dropdown (each language has its own group), and a chip for that language appears in the search window.
+Add them from the **Add a translation** (+) menu (each language has its own group), and a chip for that language appears in the search window.
 
 - **Book names in headers** follow the language: 約翰福音 3:16 (traditional, 和合本), ヨハネによる福音書 3:16 (口語訳). Greek and Hebrew texts use English book names, as in academic writing.
 - **Hebrew** cards are shown right-to-left. Hebrew versification sometimes differs from English Bibles (e.g. psalm titles counted as verse 1, Malachi 4 = Malachi 3:19–24), so check the verse number if a Hebrew card looks off by one.
@@ -161,11 +163,11 @@ Add them from the **Add a translation** dropdown (each language has its own grou
 
 Settings → *My translations* lists only the translations you use — the ones ticked "On by default" above to start with.
 
-- **Add a translation** — pick one from the dropdown at the bottom of the list. It is grouped into Korean, English and *Add your own* (Accordance module, bolls.life code, JSON file).
+- **Add a translation** — click **+** in the list header and pick one. The menu is grouped by language, with *Add your own* (Accordance module, bolls.life code, JSON file) at the end.
 - ☑ — selected for insertion by default
-- ↑ ↓ — change the order; translations appear in this order in the search window and in your notes
+- drag — change the order; translations appear in this order in the search window and in your notes
 - ✎ — edit a translation you added yourself (name, code/module/path, language, copyright notice)
-- × — remove it from the list (built-ins can be added back from the dropdown any time)
+- delete — remove it from the list (built-ins can be added back from the + menu any time)
 
 Translations such as 개역개정, 공동번역, NIV or NASB have no free source. You can still use them through [your Accordance modules](#using-your-accordance-modules-mac) or a [JSON file](#adding-other-translations) you are licensed to use.
 
@@ -175,7 +177,7 @@ Translations such as 개역개정, 공동번역, NIV or NASB have no free source
 
 1. Create a free account at [api.esv.org](https://api.esv.org) and choose **Create an API Application** (describe it as personal Bible study in Obsidian).
 2. Copy the API key.
-3. Settings → Versedrop → *My translations*: make sure ESV is in the list (add it from the dropdown if you removed it), then paste the key into **ESV API key** right under it. ESV now appears in the search window.
+3. Settings → Versedrop → *My translations*: make sure ESV is in the list (add it from the + menu if you removed it), then paste the key into **ESV API key** in the ESV section below the list. ESV now appears in the search window.
 
 Crossway's terms apply: non-commercial use only, at most 500 verses per request, and the copyright notice with a link to esv.org is always added under ESV quotations. Versedrop keeps no more than 500 ESV verses in its memory cache.
 
@@ -183,31 +185,34 @@ Crossway's terms apply: non-commercial use only, at most 500 verses per request,
 
 ## Using your Accordance modules (Mac)
 
-If you own Bible modules in [Accordance](https://www.accordancebible.com), Versedrop can fetch text from them directly. Text travels only between Accordance and Obsidian on your Mac — nothing goes over the internet, so you stay within your own license.
+If you own Bible modules in [Accordance](https://www.accordancebible.com), Versedrop can fetch text from them. It asks Accordance through a small **macOS Shortcut** that you create once. Text stays on your Mac — nothing goes over the internet, so you stay within your own license.
 
-**Requirements:** macOS, the Obsidian desktop app, and Accordance with the modules installed. (Not available on Windows, Linux, iOS or Android — the option is greyed out there.)
+**Requirements:** macOS, the Obsidian desktop app, the Shortcuts app (built into macOS) and Accordance with the modules installed. Not available on Windows, Linux, iOS or Android.
 
-**Setup:**
+### Step 1 — Create the Shortcut (once)
 
-1. Settings → Versedrop → *My translations* → **Add a translation** dropdown → **Add an Accordance module… (Mac)**. A new entry opens for editing.
-2. Fill in the row:
-   - **Display name** — what you want to see, e.g. `ESV` or `개역개정`.
-   - **Module abbreviation** — exactly as Accordance shows it in the Library or a text tab (case and hyphens matter), e.g. `ESVS`.
-   - **Language** — Korean or English, which decides which tab it appears under.
-3. Click **Test connection**. Versedrop asks Accordance for John 3:16.
-4. The first time, macOS asks *"Obsidian wants access to control Accordance"* — click **Allow**.
-5. A notice shows the verse when it works. Click the ☑ icon if you want it selected by default.
+1. Open the **Shortcuts** app → **Settings** (⌘,) → **Advanced** → turn on **Allow Running Scripts**.
+2. Create a new shortcut named **`Versedrop Accordance`**. (Another name works too — then change *Shortcut name* in Versedrop's settings to match.)
+3. Add the **Run AppleScript** action, with **Shortcut Input** as its input. If a *Receive input* block appears at the top, make sure it includes **Text**.
+4. In Versedrop's settings (*Accordance integration*), click **Copy AppleScript**. Delete the action's sample script and paste.
+5. Add **Stop and Output** below it and choose **AppleScript Result** as the output.
 
-Repeat for each module you want.
+### Step 2 — Add your modules
 
-**If you clicked "Don't Allow":** System Settings → Privacy & Security → Automation → Obsidian → turn on **Accordance**.
+1. Settings → Versedrop → *My translations* → **+** → **Add an Accordance module… (Mac)**.
+2. Enter:
+   - **Name** — what you want to see, e.g. `ESV` or `개역개정`.
+   - **Accordance module** — exactly as Accordance shows it in the Library or a text tab (case and hyphens matter), e.g. `ESVS`.
+   - **Language** — which language chip it appears under.
+3. Click **Test connection**. The first time, macOS asks whether *Shortcuts* may control Accordance — click **Allow**.
+4. A notice shows John 3:16 when it works. Repeat for each module.
 
 **Good to know:**
 
-- If Accordance isn't running, the first request launches it and takes a few seconds.
-- Passages are fetched verse by verse, so whole chapters (e.g. `Ps 119`) take a little longer.
+- While fetching, the Shortcuts app appears for a moment and then returns to Obsidian.
+- If Accordance isn't running, the first request launches it and takes a few seconds. Whole chapters (e.g. `Ps 119`) are fetched verse by verse and take a little longer.
 - Books are sent to Accordance by their English names, so Korean searches like `요 3:16` work with Korean modules too.
-- Each Accordance row has a **Copyright notice** field. Well-known translations (개역개정, 공동번역, ESV, NIV, NASB, NLT, CSB, NKJV, NRSV …) are recognised from the name or module and filled in automatically — shown in grey. Type your own text to override.
+- Well-known translations (개역개정, 공동번역, ESV, NIV, NASB, NLT, CSB, NKJV, NRSV, NA28, BHS …) get their copyright notice automatically; you can type your own in the translation's editor.
 
 ## 개역개정 and other Korean Bible Society translations
 
@@ -235,7 +240,7 @@ Logos offers no official way for other apps to read Bible text, and its resource
 
 ## Adding other translations
 
-The *Add your own* group at the bottom of the **Add a translation** dropdown offers three kinds:
+The *Add your own* group at the bottom of the **Add a translation** (+) menu offers three kinds:
 
 **bolls.life translation** — enter a display name and the bolls.life code. Useful for further languages:
 
@@ -314,7 +319,9 @@ Grouped example:
 | "No book matches …" | Try another spelling: `John`, `Jn`, `요`, `요한복음`. |
 | A card shows a network error | Check your internet connection, then search again. |
 | Text looks wrong or outdated | Settings → **Clear cache**. |
-| "Obsidian isn't allowed to control Accordance" | System Settings → Privacy & Security → Automation → Obsidian → turn on Accordance. |
+| "The Shortcut didn't respond" | Check the Shortcut's name matches *Shortcut name* and that **Allow Running Scripts** is on in the Shortcuts app. |
+| "The Shortcut returned nothing" | The Shortcut must end with **Stop and Output** → *AppleScript Result*. |
+| Shortcuts may not control Accordance | System Settings → Privacy & Security → Automation → Shortcuts → turn on Accordance. |
 | "Accordance found no text in module …" | The abbreviation must match Accordance exactly, including case and hyphens. |
 | Accordance is slow the first time | It is launching; later requests are faster. You can open Accordance beforehand. |
 | Accordance button is greyed out | Accordance integration only works in the desktop app on macOS. |
@@ -329,7 +336,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 - **Network:** text is fetched from [bolls.life](https://bolls.life), the [NET Bible API](https://labs.bible.org) and — only if you add your key — the [ESV API](https://api.esv.org). Only the translation, book and chapter (or passage) are sent; your ESV key is sent only to api.esv.org.
 - **Local only:** JSON files and Accordance modules are read on your device; nothing is sent over the network.
-- **Accordance (macOS):** uses Node's `child_process` to run `osascript`, which sends Accordance's verse-text Apple event (`AccdTxRf`). It is loaded only when you use an Accordance translation on a Mac, and macOS asks for your permission the first time.
+- **Accordance (macOS):** Versedrop runs no shell commands. It opens a `shortcuts://` link to start the Shortcut you created, and the Shortcut returns the text through an `obsidian://versedrop-accordance` link.
 - Fetched passages are cached in memory until Obsidian restarts.
 
 ---
@@ -371,6 +378,8 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - Obsidian 언어 설정에 따라 한국어/영어 화면과 도움말 제공
 
 ## 설치하기
+
+**Obsidian 1.13 이상**이 필요해요.
 
 **커뮤니티 플러그인에서** (등록 후): 설정 → 커뮤니티 플러그인 → 탐색 → **Versedrop** 검색 → 설치 → 활성화.
 
@@ -468,7 +477,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ### 중국어·일본어·헬라어·히브리어
 
-**역본 추가** 드롭다운에서 언어별 묶음으로 고르면 추가되고, 검색 창에 그 언어 버튼이 생겨요.
+**역본 추가**(+) 메뉴에서 언어별 묶음으로 고르면 추가되고, 검색 창에 그 언어 버튼이 생겨요.
 
 - **제목의 책 이름**은 역본 언어를 따라가요: 約翰福音 3:16 (和合本, 번체), ヨハネによる福音書 3:16 (口語訳). 헬라어·히브리어 원문은 학술 관례대로 영어 책 이름을 써요.
 - **히브리어** 카드는 오른쪽에서 왼쪽으로 표시돼요. 히브리어 성경은 절 구분이 한국어·영어 성경과 다른 곳이 있어요(예: 시편 표제가 1절로 셈, 말라기 4장 = 말라기 3:19–24). 히브리어 카드가 한 절씩 어긋나 보이면 절 번호를 확인해 보세요.
@@ -479,11 +488,11 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 설정 → *내 역본*에는 내가 쓰는 역본만 보여요. 처음에는 위 표에서 "기본 켜짐"이 ✓인 역본들이 들어 있어요.
 
-- **역본 추가** — 목록 맨 아래 드롭다운에서 고르면 바로 추가돼요. 한국어, English, *직접 추가*(Accordance 모듈, bolls.life 코드, JSON 파일)로 묶여 있어요.
+- **역본 추가** — 목록 머리의 **+** 를 눌러 고르면 바로 추가돼요. 한국어, English, *직접 추가*(Accordance 모듈, bolls.life 코드, JSON 파일)로 묶여 있어요.
 - ☑ — 처음부터 삽입 대상으로 선택
-- ↑ ↓ — 순서 바꾸기. 이 순서대로 검색 창과 노트에 들어가요.
+- 끌어서 순서 바꾸기 — 이 순서대로 검색 창과 노트에 들어가요.
 - ✎ — 직접 추가한 역본 편집 (이름, 코드/모듈/경로, 언어, 출처 문구)
-- × — 목록에서 빼기 (기본 역본은 언제든 드롭다운에서 다시 추가할 수 있어요)
+- 삭제 — 목록에서 빼기 (기본 역본은 언제든 + 메뉴에서 다시 추가할 수 있어요)
 
 개역개정, 공동번역, NIV, NASB 같은 역본은 무료로 가져올 수 있는 공개 소스가 없어요. 대신 [Accordance 모듈](#accordance-역본-연결하기-mac)이나 사용 권한이 있는 [JSON 파일](#다른-역본-추가하기)로 연결할 수 있습니다.
 
@@ -493,7 +502,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 1. [api.esv.org](https://api.esv.org)에서 무료 계정을 만들고 **Create an API Application**을 누르세요. 용도는 "Obsidian에서 개인 성경 공부"처럼 적으면 돼요.
 2. 발급된 API 키를 복사합니다.
-3. 설정 → Versedrop → *내 역본*에 ESV가 있는지 확인하고(뺐다면 드롭다운에서 다시 추가), 바로 아래 **ESV API 키** 칸에 붙여 넣으면 검색 창에 ESV가 나타나요.
+3. 설정 → Versedrop → *내 역본*에 ESV가 있는지 확인하고(뺐다면 + 메뉴에서 다시 추가), 목록 아래 ESV 항목의 **ESV API 키** 칸에 붙여 넣으면 검색 창에 ESV가 나타나요.
 
 Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500절까지 가져올 수 있어요. ESV 인용 아래에는 출처 문구와 esv.org 링크가 항상 붙고, Versedrop은 ESV 본문을 메모리에 500절 넘게 보관하지 않아요.
 
@@ -501,31 +510,34 @@ Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500�
 
 ## Accordance 역본 연결하기 (Mac)
 
-[Accordance](https://www.accordancebible.com)에서 구입한 성경 모듈이 있다면 Versedrop이 그 본문을 직접 가져올 수 있어요. 본문은 내 Mac 안에서 Accordance와 Obsidian 사이에서만 오가고 인터넷으로 전송되지 않으니, 내가 가진 라이선스 범위 안에서 쓰는 셈입니다.
+[Accordance](https://www.accordancebible.com)에서 구입한 성경 모듈이 있다면 Versedrop이 그 본문을 가져올 수 있어요. 한 번만 만들어 두는 작은 **macOS 단축어**를 통해 Accordance에 요청해요. 본문은 내 Mac 안에서만 오가고 인터넷으로 전송되지 않으니, 내가 가진 라이선스 범위 안에서 쓰는 셈입니다.
 
-**필요한 것:** macOS, Obsidian 데스크톱 앱, 모듈이 설치된 Accordance. (Windows, Linux, iPhone, Android에서는 버튼이 비활성화돼요.)
+**필요한 것:** macOS, Obsidian 데스크톱 앱, 단축어 앱(macOS 기본 앱), 모듈이 설치된 Accordance. Windows, Linux, iPhone, Android에서는 쓸 수 없어요.
 
-**연결 방법:**
+### 1단계 — 단축어 만들기 (처음 한 번)
 
-1. 설정 → Versedrop → *내 역본* → **역본 추가** 드롭다운 → **Accordance 모듈로 추가… (Mac)** 를 고르면 편집 칸이 열려요.
-2. 새 줄을 채웁니다.
-   - **표시할 이름** — 검색 창에 보일 이름. 예: `개역개정`, `ESV`
-   - **모듈 약어** — Accordance 라이브러리나 텍스트 탭에 보이는 이름과 **똑같이** (대소문자, 하이픈 포함). 예: `ESVS`
-   - **언어** — 한국어 또는 English. 검색 창의 어느 탭에 나올지 정해요.
-3. **연결 확인**을 누르면 Accordance에 요한복음 3:16을 요청합니다.
-4. 처음에는 macOS가 *"Obsidian이(가) Accordance을(를) 제어하려고 합니다"* 라고 물어요. **허용**을 눌러 주세요.
-5. 성공하면 화면 오른쪽 위에 본문이 표시됩니다. 기본으로 넣고 싶다면 ☑ 아이콘을 켜 두세요.
+1. **단축어** 앱 → **설정**(⌘,) → **고급** → **스크립트 실행 허용**을 켜세요.
+2. 새 단축어를 만들고 이름을 **`Versedrop Accordance`**로 정하세요. (다른 이름을 쓰려면 Versedrop 설정의 *단축어 이름*도 똑같이 바꾸세요.)
+3. **AppleScript 실행** 동작을 추가하고 입력은 **단축어 입력**으로 두세요. 위쪽에 *입력 받기* 항목이 생기면 **텍스트**가 포함되게 해 주세요.
+4. Versedrop 설정의 *Accordance 연동*에서 **AppleScript 복사**를 누르고, 동작 안의 기본 스크립트를 지운 뒤 붙여 넣으세요.
+5. 그 아래에 **출력 중지** 동작을 추가하고 출력 값으로 **AppleScript 결과**를 고르세요.
 
-쓰고 싶은 모듈마다 같은 방법으로 하나씩 추가하면 돼요.
+### 2단계 — 내 모듈 추가하기
 
-**"허용 안 함"을 눌렀다면:** 시스템 설정 → 개인정보 보호 및 보안 → 자동화 → Obsidian 아래의 **Accordance**를 켜 주세요.
+1. 설정 → Versedrop → *내 역본* → **+** → **Accordance 모듈로 추가… (Mac)**
+2. 입력하세요.
+   - **이름** — 검색 창에 보일 이름. 예: `개역개정`, `ESV`
+   - **Accordance 모듈** — Accordance 라이브러리나 텍스트 탭에 보이는 약어와 **똑같이** (대소문자, 하이픈 포함). 예: `ESVS`
+   - **언어** — 검색 창의 어느 언어 버튼에 나올지 정해요.
+3. **연결 확인**을 누르세요. 처음에는 macOS가 *단축어*가 Accordance를 제어해도 되는지 물어요. **허용**을 눌러 주세요.
+4. 성공하면 요한복음 3:16이 알림으로 떠요. 쓰고 싶은 모듈마다 반복하세요.
 
 **알아두면 좋은 점:**
 
-- Accordance가 꺼져 있으면 첫 요청 때 Accordance가 실행되느라 몇 초 걸려요.
-- 절 단위로 요청하기 때문에 `시 119` 같은 장 전체는 조금 오래 걸릴 수 있어요.
+- 본문을 가져올 때 단축어 앱이 잠깐 나타났다가 Obsidian으로 돌아와요.
+- Accordance가 꺼져 있으면 첫 요청 때 실행되느라 몇 초 걸려요. `시 119` 같은 장 전체는 절마다 요청해서 조금 오래 걸려요.
 - 책 이름은 영어로 바꿔서 Accordance에 보내므로, `요 3:16`처럼 한글로 검색해도 한국어 모듈에서 잘 가져와요.
-- Accordance 줄 아래에는 **출처 문구** 칸이 있어요. 개역개정, 공동번역, ESV, NIV, NASB, NLT, CSB, NKJV, NRSV처럼 알려진 역본은 이름이나 모듈 약어를 보고 자동으로 채워져요(회색 글씨). 바꾸고 싶으면 직접 입력하세요.
+- 개역개정, 공동번역, ESV, NIV, NASB, NLT, CSB, NKJV, NRSV, NA28, BHS처럼 알려진 역본은 출처 문구가 자동으로 붙어요. 역본 편집 창에서 직접 바꿀 수도 있어요.
 
 ## 개역개정 등 대한성서공회 역본
 
@@ -553,7 +565,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 ## 다른 역본 추가하기
 
-**역본 추가** 드롭다운 맨 아래 *직접 추가* 묶음에서 세 가지 방법을 쓸 수 있어요.
+**역본 추가**(+) 메뉴 맨 아래 *직접 추가* 묶음에서 세 가지 방법을 쓸 수 있어요.
 
 **bolls.life 역본** — 표시할 이름과 bolls.life 코드를 입력합니다. 다른 언어 성경을 쓸 때 유용해요.
 
@@ -641,7 +653,9 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 | "…에 해당하는 책을 찾지 못했어요" | 다른 표기로 입력해 보세요: `요`, `요한복음`, `John`, `Jn` |
 | 카드에 네트워크 오류 | 인터넷 연결을 확인하고 다시 검색하세요. |
 | 본문이 이상하거나 예전 내용 | 설정 → **캐시 비우기** |
-| "Obsidian이 Accordance를 제어할 권한이 없어요" | 시스템 설정 → 개인정보 보호 및 보안 → 자동화 → Obsidian → Accordance 켜기 |
+| "단축어가 응답하지 않아요" | 단축어 이름이 설정의 *단축어 이름*과 같은지, 단축어 앱에서 **스크립트 실행 허용**이 켜져 있는지 확인하세요. |
+| "단축어가 아무 결과도 돌려주지 않았어요" | 단축어 마지막에 **출력 중지** → *AppleScript 결과*가 있어야 해요. |
+| 단축어가 Accordance를 제어하지 못함 | 시스템 설정 → 개인정보 보호 및 보안 → 자동화 → 단축어 → Accordance 켜기 |
 | "Accordance가 … 모듈에서 본문을 찾지 못했어요" | 모듈 약어를 Accordance에 보이는 그대로(대소문자·하이픈 포함) 입력했는지 확인하세요. |
 | Accordance가 처음에 느림 | Accordance가 실행되는 중이에요. 다음부터는 빨라지고, 미리 열어 두면 더 빨라요. |
 | Accordance 버튼이 회색 | Mac의 Obsidian 데스크톱 앱에서만 쓸 수 있어요. |
@@ -656,7 +670,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 - **네트워크:** 본문은 [bolls.life](https://bolls.life), [NET Bible API](https://labs.bible.org), 그리고 키를 넣은 경우에만 [ESV API](https://api.esv.org)에서 가져와요. 보내는 정보는 역본과 책·장(또는 구절)뿐이고, ESV 키는 api.esv.org에만 전송돼요.
 - **내 기기 안에서만:** JSON 파일과 Accordance 모듈은 내 기기에서 읽고, 인터넷으로 보내지 않아요.
-- **Accordance (macOS):** Node의 `child_process`로 `osascript`를 실행해 Accordance의 본문 요청 Apple 이벤트(`AccdTxRf`)를 보내요. Mac에서 Accordance 역본을 쓸 때만 불러오고, 처음 한 번 macOS가 권한을 물어봅니다.
+- **Accordance (macOS):** Versedrop은 셸 명령을 실행하지 않아요. 사용자가 만든 단축어를 `shortcuts://` 링크로 실행하고, 단축어가 `obsidian://versedrop-accordance` 링크로 본문을 돌려줘요.
 - 가져온 본문은 Obsidian을 다시 시작할 때까지 메모리에 임시 저장돼요.
 
 ---

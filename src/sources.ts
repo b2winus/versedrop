@@ -1,6 +1,6 @@
 import { App, normalizePath, requestUrl, TFile } from "obsidian";
 import { BookInfo, findBook } from "./books";
-import { fetchFromAccordance } from "./accordance";
+import { AccordanceBridge } from "./accordance";
 import { knownCitation } from "./citations";
 import { t } from "./i18n";
 import { BibleReference, inRanges } from "./reference";
@@ -246,7 +246,11 @@ export class BibleSource {
 	private esvCache = new Map<string, Verse[]>();
 	private esvCached = 0;
 
-	constructor(private app: App, private esvKey: () => string) {}
+	constructor(
+		private app: App,
+		private esvKey: () => string,
+		private accordance: AccordanceBridge,
+	) {}
 
 	clearCache(): void {
 		this.chapterCache.clear();
@@ -357,7 +361,7 @@ export class BibleSource {
 			? ref.ranges.flatMap((r) => Array.from({ length: Math.min(r.end - r.start + 1, 200) }, (_, i) => r.start + i))
 			: "all";
 		const bookName = ref.book.num === 22 ? "Song" : ref.book.en;
-		const raw = await fetchFromAccordance(tr.module ?? "", `${bookName} ${ref.chapter}`, wanted);
+		const raw = await this.accordance.fetch(tr.module ?? "", `${bookName} ${ref.chapter}`, wanted);
 		const verses = raw.map((v) => ({ verse: v.verse, text: cleanText(v.text) })).filter((v) => v.text);
 		if (verses.length) this.chapterCache.set(key, verses);
 		return verses;

@@ -20,6 +20,8 @@ const ko = {
 	sSetHotkey: "단축키 지정",
 	sChangeHotkey: "바꾸기",
 	sPresetAdd: "프리셋 추가",
+	sPresets: "프리셋",
+	sPresetTranslations: "넣을 역본",
 	sPresetAddDesc: "자주 쓰는 역본 조합을 프리셋으로 만들면 따로 명령이 생겨요. 예: '한영 대조', '원어 대조'",
 	sPresetDesc: "구절 위에서 실행하면 아래 역본으로 바로 넣고, 아니면 이 역본들이 선택된 검색 창이 열려요.",
 	sPresetNamePlaceholder: "프리셋 이름 (예: 원어 대조)",
@@ -50,8 +52,17 @@ const ko = {
 	accPermission:
 		"Obsidian이 Accordance를 제어할 권한이 없어요. 시스템 설정 › 개인정보 보호 및 보안 › 자동화에서 Obsidian 아래의 Accordance를 켜 주세요.",
 	accNotFound: "Accordance 앱을 찾지 못했어요. 설치되어 있는지 확인해 주세요.",
-	accTimeout: "Accordance 응답이 너무 늦어요. Accordance를 먼저 실행한 뒤 다시 시도해 주세요.",
-	accFailed: "Accordance 요청이 실패했어요:",
+	accTimeout: "단축어가 응답하지 않아요. 단축어 이름이 설정과 같은지, 단축어 앱 설정에서 '스크립트 실행 허용'이 켜져 있는지 확인해 주세요.",
+	accFailed: "Accordance 단축어 실행에 실패했어요:",
+	accCancelled: "단축어 실행이 취소됐어요.",
+	accEmpty: "단축어가 아무 결과도 돌려주지 않았어요. 단축어 마지막에 'AppleScript 결과'를 출력하는 '출력 중지' 동작이 있는지 확인해 주세요.",
+	sAccGroup: "Accordance 연동 (Mac)",
+	sAccShortcut: "단축어 이름",
+	sAccShortcutDesc: "Accordance와 연결해 주는 macOS 단축어의 이름이에요. 단축어 앱에서 만든 이름과 똑같이 적어 주세요.",
+	sAccCopy: "AppleScript 복사",
+	sAccCopyDesc: "단축어의 'AppleScript 실행' 동작에 붙여 넣을 스크립트를 클립보드에 복사해요.",
+	sAccCopied: "AppleScript를 복사했어요. 단축어의 'AppleScript 실행' 동작에 붙여 넣으세요.",
+	sAccHowTo: "단축어 만드는 법",
 	accBadModule: (m: string) => `Accordance가 '${m}' 모듈에서 본문을 찾지 못했어요. 모듈 약어가 Accordance 화면에 보이는 것과 똑같은지 확인해 주세요.`,
 	accTestOk: (m: string, text: string) => `Accordance '${m}' 연결 성공: ${text}`,
 
@@ -98,8 +109,8 @@ const ko = {
 	sNamePlaceholder: "예: 개역개정",
 	sLang: "언어",
 	sMyTranslations: "내 역본",
-	sMyTranslationsDesc: "검색 창에 나올 역본이에요. ☑ 기본으로 선택 · ↑↓ 순서 바꾸기 · ✎ 편집 · × 빼기. 순서대로 검색 창과 노트에 들어가요.",
-	sNoTranslations: "아직 역본이 없어요. 아래에서 추가해 주세요.",
+	sMyTranslationsDesc: "검색 창에 나올 역본이에요. ☑ 기본으로 선택 · 끌어서 순서 바꾸기 · ✎ 편집 · 삭제로 빼기. + 로 추가해요.",
+	sNoTranslations: "아직 역본이 없어요. + 를 눌러 추가해 주세요.",
 	sUnnamed: "(이름 없음)",
 	sMoveUp: "위로",
 	sMoveDown: "아래로",
@@ -161,7 +172,7 @@ const ko = {
 			paras: [
 				"개역한글과 영어 공개 역본(KJV, WEB, BSB, ASV, YLT, LSV, GNV, DRB)은 무료 성경 API인 bolls.life에서 가져와요. 보내는 정보는 역본 코드와 책·장 번호뿐이에요.",
 				"NET은 NET Bible 공식 API(labs.bible.org)에서, ESV는 Crossway 공식 API(api.esv.org)에서 직접 가져와요. 두 곳 모두 비영리 인용을 허락하고, 대신 출처 표기를 요구해요.",
-				"새번역은 대한성서공회 저작권 역본이라 기본으로 꺼 두었어요. 필요하면 '역본 추가' 드롭다운에서 추가할 수 있지만, 개인 묵상·연구용으로만 써 주세요.",
+				"새번역은 대한성서공회 저작권 역본이라 기본으로 꺼 두었어요. 필요하면 '역본 추가'(+) 메뉴에서 추가할 수 있지만, 개인 묵상·연구용으로만 써 주세요.",
 			],
 		},
 		{
@@ -175,14 +186,15 @@ const ko = {
 		{
 			title: "Accordance에서 내 역본 가져오기 (Mac)",
 			paras: [
-				"Accordance에서 구입한 역본(예: 개역개정, ESV, NIV, NASB)을 Versedrop 검색 결과에 함께 띄울 수 있어요. 본문은 내 Mac 안에서 Accordance와 Obsidian 사이에서만 오가고 인터넷으로 전송되지 않아요.",
-				"1) Mac에 Accordance를 설치하고 원하는 성경 모듈을 내려받아 두세요.",
-				"2) '내 역본' 아래 '역본 추가' 드롭다운에서 'Accordance 모듈로 추가… (Mac)'를 고르세요.",
-				"3) 표시할 이름과 모듈 약어를 입력하세요. 약어는 Accordance 라이브러리나 텍스트 탭에 보이는 이름과 똑같이 써야 해요(대소문자·하이픈 포함).",
-				"4) '연결 확인'을 누르면 요한복음 3:16을 가져와 봐요. 처음에는 macOS가 'Obsidian이 Accordance를 제어하도록 허용할까요?'라고 물어요. 허용을 눌러 주세요.",
-				"5) 개역개정·ESV·NIV·NASB·NLT·CSB·NKJV·NRSV처럼 알려진 역본은 출처 문구가 자동으로 채워져요. 다른 역본은 '출처 문구' 칸에 직접 입력하세요.",
-				"권한을 거절했다면 시스템 설정 › 개인정보 보호 및 보안 › 자동화에서 Obsidian 아래의 Accordance를 켜면 돼요.",
-				"참고: Windows·모바일에서는 동작하지 않아요. Accordance가 꺼져 있으면 처음 요청 때 실행되느라 몇 초 걸려요. 장 전체를 가져올 때는 절마다 요청하므로 조금 느릴 수 있어요.",
+				"Accordance에서 구입한 역본(예: 개역개정, ESV, NIV, NA28)을 Versedrop 검색 결과에 함께 띄울 수 있어요. Versedrop은 macOS '단축어' 앱을 통해 Accordance에 본문을 요청해요. 본문은 내 Mac 안에서만 오가고 인터넷으로 전송되지 않아요.",
+				"처음 한 번만 단축어를 만들면 돼요:",
+				"1) 단축어 앱 → 설정(⌘,) → 고급 → '스크립트 실행 허용'을 켜세요.",
+				"2) 새 단축어를 만들고 이름을 'Versedrop Accordance'로 정하세요. (다른 이름을 쓰면 Versedrop 설정의 '단축어 이름'도 똑같이 바꾸세요.)",
+				"3) 오른쪽 동작 목록에서 'AppleScript 실행'을 추가하세요. 입력은 '단축어 입력'으로 두세요. 편집기 위쪽에 '입력 받기' 항목이 생기면 '텍스트'가 포함되게 해 주세요.",
+				"4) Versedrop 설정의 'AppleScript 복사'를 누르고, 동작 안의 기본 스크립트를 모두 지운 뒤 붙여 넣으세요.",
+				"5) 그 아래에 '출력 중지'(Stop and Output) 동작을 추가하고, 출력할 값으로 'AppleScript 결과'를 고르세요.",
+				"6) Versedrop 설정 → 내 역본 → + → 'Accordance 모듈로 추가'에서 이름과 모듈 약어(Accordance에 보이는 그대로)를 넣고 '연결 확인'을 누르세요. 처음에는 macOS가 '단축어가 Accordance를 제어하도록 허용할까요?'라고 물으니 허용을 눌러 주세요.",
+				"참고: 본문을 가져올 때 단축어 앱이 잠깐 나타났다가 Obsidian으로 돌아와요. 개역개정·ESV·NIV·NA28·BHS처럼 알려진 역본은 출처 문구가 자동으로 붙어요. Windows·모바일에서는 동작하지 않아요.",
 			],
 		},
 		{
@@ -198,7 +210,7 @@ const ko = {
 			paras: [
 				"ESV: api.esv.org에서 무료 계정을 만들고 'API Application'을 생성하면 개인 키를 받을 수 있어요. 비영리 용도만 허용되며, '내 역본'의 ESV 바로 아래 'ESV API 키'에 넣으면 ESV가 나타나요. Crossway 조건에 따라 출처 문구와 esv.org 링크가 항상 붙고, 한 번에 500절까지만 가져올 수 있어요.",
 				"NET: 키 없이 바로 쓸 수 있어요. 조건에 따라 제목의 'NET'이 netbible.org로 연결되고 출처 문구가 붙어요.",
-				"공개 역본 더 보기: LSV(현대어 직역), Geneva 1599, Douay-Rheims는 '역본 추가' 드롭다운에서 추가할 수 있어요.",
+				"공개 역본 더 보기: LSV(현대어 직역), Geneva 1599, Douay-Rheims는 '역본 추가'(+) 메뉴에서 추가할 수 있어요.",
 				"NIV, NASB, NLT, CSB, NKJV처럼 무료 API가 없는 역본은 Accordance 모듈로 연결하세요. Logos 역본은 본문을 가져올 수 없지만 'Logos 링크'로 Logos에서 바로 열 수 있어요.",
 			],
 		},
@@ -212,7 +224,7 @@ const ko = {
 		{
 			title: "JSON 파일로 역본 추가하기",
 			paras: [
-				"사용 권한이 있는 성경 JSON 파일을 볼트에 넣고, '역본 추가' 드롭다운에서 'JSON 파일로 추가…'를 고른 뒤 볼트 안의 경로(예: Bibles/nkrv.json)를 입력하세요.",
+				"사용 권한이 있는 성경 JSON 파일을 볼트에 넣고, '역본 추가'(+) 메뉴에서 'JSON 파일로 추가…'를 고른 뒤 볼트 안의 경로(예: Bibles/nkrv.json)를 입력하세요.",
 				'세 가지 형식을 인식해요: [{"book":43,"chapter":3,"verse":16,"text":"…"}] 같은 배열, {"43":{"3":{"16":"…"}}} 같은 중첩 객체, {"요3:16":"…"} 같은 키 형식. 책 번호는 창세기 1부터 요한계시록 66까지예요.',
 			],
 		},
@@ -227,7 +239,7 @@ const ko = {
 		{
 			title: "중국어·일본어·헬라어·히브리어",
 			paras: [
-				"'역본 추가' 드롭다운의 언어별 묶음에서 和合本(번체), 口語訳, SBLGNT·Textus Receptus·Tischendorf(헬라어 신약), WLC·Delitzsch(히브리어)를 추가할 수 있어요. 추가하면 검색 창에 그 언어 버튼이 생겨요.",
+				"'역본 추가'(+) 메뉴의 언어별 묶음에서 和合本(번체), 口語訳, SBLGNT·Textus Receptus·Tischendorf(헬라어 신약), WLC·Delitzsch(히브리어)를 추가할 수 있어요. 추가하면 검색 창에 그 언어 버튼이 생겨요.",
 				"중국어·일본어 책 이름으로도 검색할 수 있어요. 예: 约翰福音 3:16, 約3:16, ヨハ3章16節, 林前13:4-7.",
 				"헬라어 역본은 신약만, 히브리어 WLC는 구약만 있어서 그 책이 있을 때만 카드가 나와요. 히브리어 성경은 절 구분이 다른 곳이 있으니(시편 표제, 말라기 4장 등) 절 번호를 확인해 주세요.",
 				"新标点和合本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS 같은 저작권 판본은 Accordance 모듈로 추가하면 출처 문구가 자동으로 붙어요.",
@@ -236,7 +248,7 @@ const ko = {
 		{
 			title: "다른 언어 역본 추가하기",
 			paras: [
-				"bolls.life에 있는 역본은 '역본 추가' 드롭다운의 'bolls.life 역본 코드로 추가…'에서 코드만 넣으면 바로 쓸 수 있어요. 예: LUT(Luther 1912, 독일어), RV1960(Reina-Valera 1960, 스페인어). 전체 목록은 bolls.life/static/bolls/app/views/languages.json 에서 볼 수 있어요. 각 역본의 저작권을 지켜 주세요.",
+				"bolls.life에 있는 역본은 '역본 추가'(+) 메뉴의 'bolls.life 역본 코드로 추가…'에서 코드만 넣으면 바로 쓸 수 있어요. 예: LUT(Luther 1912, 독일어), RV1960(Reina-Valera 1960, 스페인어). 전체 목록은 bolls.life/static/bolls/app/views/languages.json 에서 볼 수 있어요. 각 역본의 저작권을 지켜 주세요.",
 			],
 		},
 	] as HelpTopic[],
@@ -257,6 +269,8 @@ const en: typeof ko = {
 	sSetHotkey: "Set hotkey",
 	sChangeHotkey: "Change",
 	sPresetAdd: "Add preset",
+	sPresets: "Presets",
+	sPresetTranslations: "Translations to insert",
 	sPresetAddDesc: "Save a set of translations you use together as a preset — it gets its own command. e.g. 'Korean–English', 'Original languages'",
 	sPresetDesc: "Run it on a reference to insert these translations directly; otherwise it opens the search window with them selected.",
 	sPresetNamePlaceholder: "Preset name (e.g. Original languages)",
@@ -286,8 +300,17 @@ const en: typeof ko = {
 	accPermission:
 		"Obsidian isn't allowed to control Accordance. Turn on Accordance under Obsidian in System Settings › Privacy & Security › Automation.",
 	accNotFound: "Couldn't find the Accordance app. Make sure it is installed.",
-	accTimeout: "Accordance took too long to respond. Open Accordance first and try again.",
-	accFailed: "Accordance request failed:",
+	accTimeout: "The Shortcut didn't respond. Check that its name matches the setting and that 'Allow Running Scripts' is on in the Shortcuts app settings.",
+	accFailed: "The Accordance Shortcut failed:",
+	accCancelled: "The Shortcut was cancelled.",
+	accEmpty: "The Shortcut returned nothing. Make sure it ends with a 'Stop and Output' action that outputs the AppleScript result.",
+	sAccGroup: "Accordance integration (Mac)",
+	sAccShortcut: "Shortcut name",
+	sAccShortcutDesc: "Name of the macOS Shortcut that connects Versedrop to Accordance. It must match the name in the Shortcuts app exactly.",
+	sAccCopy: "Copy AppleScript",
+	sAccCopyDesc: "Copies the script to paste into the Shortcut's 'Run AppleScript' action.",
+	sAccCopied: "AppleScript copied. Paste it into the Shortcut's 'Run AppleScript' action.",
+	sAccHowTo: "How to create the Shortcut",
 	accBadModule: (m: string) => `Accordance found no text in module '${m}'. Check that the abbreviation matches exactly what Accordance shows.`,
 	accTestOk: (m: string, text: string) => `Connected to Accordance '${m}': ${text}`,
 
@@ -333,8 +356,8 @@ const en: typeof ko = {
 	sNamePlaceholder: "e.g. NIV",
 	sLang: "Language",
 	sMyTranslations: "My translations",
-	sMyTranslationsDesc: "Translations shown in the search window. ☑ pick by default · ↑↓ reorder · ✎ edit · × remove. They appear in this order in the search window and your notes.",
-	sNoTranslations: "No translations yet. Add one below.",
+	sMyTranslationsDesc: "Translations shown in the search window. ☑ pick by default · drag to reorder · ✎ edit · delete to remove. Add with +.",
+	sNoTranslations: "No translations yet. Click + to add one.",
 	sUnnamed: "(unnamed)",
 	sMoveUp: "Move up",
 	sMoveDown: "Move down",
@@ -396,7 +419,7 @@ const en: typeof ko = {
 			paras: [
 				"개역한글 and the open English translations (KJV, WEB, BSB, ASV, YLT, LSV, GNV, DRB) come from bolls.life, a free Bible API. Only the translation code and book/chapter numbers are sent.",
 				"NET comes from the official NET Bible API (labs.bible.org) and ESV from Crossway's official API (api.esv.org). Both allow non-commercial quotation and require a copyright notice.",
-				"새번역 is copyrighted by the Korean Bible Society, so it is off by default. You can add it from the 'Add a translation' dropdown, for personal study only.",
+				"새번역 is copyrighted by the Korean Bible Society, so it is off by default. You can add it from the 'Add a translation' (+) menu, for personal study only.",
 			],
 		},
 		{
@@ -410,14 +433,15 @@ const en: typeof ko = {
 		{
 			title: "Use your Accordance translations (Mac)",
 			paras: [
-				"Translations you own in Accordance (e.g. ESV, NIV, NASB, 개역개정) can appear in Versedrop's results. Text moves only between Accordance and Obsidian on your Mac — nothing is sent over the internet.",
-				"1) Install Accordance on your Mac and download the Bible modules you want.",
-				"2) In 'My translations', choose 'Add an Accordance module… (Mac)' from the 'Add a translation' dropdown.",
-				"3) Enter a display name and the module abbreviation exactly as Accordance shows it in the Library or a text tab (case and hyphens matter).",
-				"4) Click 'Test connection' to fetch John 3:16. The first time, macOS asks whether Obsidian may control Accordance — click Allow.",
-				"5) Well-known translations (ESV, NIV, NASB, NLT, CSB, NKJV, NRSV, 개역개정 …) get their copyright notice automatically. For others, type it into 'Copyright notice'.",
-				"If you declined, turn on Accordance under Obsidian in System Settings › Privacy & Security › Automation.",
-				"Notes: this doesn't work on Windows or mobile. If Accordance isn't running, the first request takes a few seconds while it launches. Whole chapters are fetched verse by verse, so they can be a little slow.",
+				"Translations you own in Accordance (e.g. ESV, NIV, NA28, 개역개정) can appear in Versedrop's results. Versedrop asks Accordance for the text through the macOS Shortcuts app. Text stays on your Mac — nothing is sent over the internet.",
+				"Create the Shortcut once:",
+				"1) Shortcuts app → Settings (⌘,) → Advanced → turn on 'Allow Running Scripts'.",
+				"2) Create a new shortcut named 'Versedrop Accordance'. (If you use another name, change 'Shortcut name' in Versedrop's settings to match.)",
+				"3) Add the 'Run AppleScript' action with 'Shortcut Input' as its input. If a 'Receive input' block appears at the top, make sure it includes Text.",
+				"4) Click 'Copy AppleScript' in Versedrop's settings, delete the action's sample script and paste.",
+				"5) Add a 'Stop and Output' action below it and choose 'AppleScript Result' as the output.",
+				"6) In Versedrop: My translations → + → 'Add an Accordance module', enter a name and the module abbreviation exactly as Accordance shows it, and click 'Test connection'. The first time, macOS asks whether Shortcuts may control Accordance — click Allow.",
+				"Notes: the Shortcuts app appears briefly while fetching and then returns to Obsidian. Well-known translations (ESV, NIV, NA28, BHS, 개역개정 …) get their copyright notice automatically. Not available on Windows or mobile.",
 			],
 		},
 		{
@@ -433,7 +457,7 @@ const en: typeof ko = {
 			paras: [
 				"ESV: create a free account at api.esv.org and an 'API Application' to get a personal key (non-commercial use only). Paste it into 'ESV API key' right under ESV in 'My translations' and ESV appears. Per Crossway's terms, the notice and an esv.org link are always added, and up to 500 verses can be fetched at once.",
 				"NET: works without a key. Per its terms, 'NET' in the header links to netbible.org and a notice is added.",
-				"More open translations: LSV (literal, modern), Geneva 1599 and Douay-Rheims can be added from the 'Add a translation' dropdown.",
+				"More open translations: LSV (literal, modern), Geneva 1599 and Douay-Rheims can be added from the 'Add a translation' (+) menu.",
 				"Translations with no free API, such as NIV, NASB, NLT, CSB and NKJV, can be connected from your Accordance modules. Logos text can't be fetched, but 'Logos links' open the passage in Logos.",
 			],
 		},
@@ -447,7 +471,7 @@ const en: typeof ko = {
 		{
 			title: "Add a translation from a JSON file",
 			paras: [
-				"Put a Bible JSON file you are licensed to use in your vault, choose 'Add from a JSON file…' in the 'Add a translation' dropdown, and enter its vault path (e.g. Bibles/esv.json).",
+				"Put a Bible JSON file you are licensed to use in your vault, choose 'Add from a JSON file…' in the 'Add a translation' (+) menu, and enter its vault path (e.g. Bibles/esv.json).",
 				'Three layouts are recognised: an array like [{"book":43,"chapter":3,"verse":16,"text":"…"}], nested objects like {"43":{"3":{"16":"…"}}}, and flat keys like {"John 3:16":"…"} or {"요3:16":"…"}. Book numbers run from 1 (Genesis) to 66 (Revelation).',
 			],
 		},
@@ -462,7 +486,7 @@ const en: typeof ko = {
 		{
 			title: "Chinese, Japanese, Greek and Hebrew",
 			paras: [
-				"The language groups in the 'Add a translation' dropdown offer 和合本 (traditional), 口語訳, SBLGNT, Textus Receptus and Tischendorf (Greek NT), and WLC and Delitzsch (Hebrew). Once added, a chip for that language appears in the search window.",
+				"The language groups in the 'Add a translation' (+) menu offer 和合本 (traditional), 口語訳, SBLGNT, Textus Receptus and Tischendorf (Greek NT), and WLC and Delitzsch (Hebrew). Once added, a chip for that language appears in the search window.",
 				"You can also search with Chinese or Japanese book names, e.g. 约翰福音 3:16, 約3:16, ヨハ3章16節, 林前13:4-7.",
 				"Greek texts are NT only and Hebrew WLC is OT only, so their cards appear only when the book is in them. Hebrew versification differs in places (psalm titles, Malachi 4 …) — check the verse number.",
 				"Copyrighted editions such as 新标点和合本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX and BHS get the right notice automatically when added as Accordance modules.",

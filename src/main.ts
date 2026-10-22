@@ -1,19 +1,25 @@
 import { Editor, Notice, Plugin } from "obsidian";
+import { AccordanceBridge, CALLBACK_ACTION } from "./accordance";
 import { formatPassages, Passage } from "./format";
 import { removeCommand } from "./hotkeys";
 import { t } from "./i18n";
 import { VerseModal } from "./modal";
 import { BibleReference, parseReference } from "./reference";
-import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings, VersedropSettingTab } from "./settings";
+import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./settings";
+import { VersedropSettingTab } from "./settings-tab";
 import { BibleSource, BUILT_IN_TRANSLATIONS, hasBook, isCopyrighted, Translation } from "./sources";
 
 export default class VersedropPlugin extends Plugin {
 	settings!: VersedropSettings;
 	source!: BibleSource;
+	accordance!: AccordanceBridge;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		this.source = new BibleSource(this.app, () => this.settings.esvApiKey);
+		this.accordance = new AccordanceBridge(() => this.settings.accordanceShortcut);
+		this.source = new BibleSource(this.app, () => this.settings.esvApiKey, this.accordance);
+		// The Accordance Shortcut sends its result back to obsidian://versedrop-accordance
+		this.registerObsidianProtocolHandler(CALLBACK_ACTION, (params) => this.accordance.handleCallback(params));
 
 		this.addCommand({
 			id: "insert-passage",

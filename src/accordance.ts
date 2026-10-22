@@ -2,30 +2,35 @@ import { Platform } from "obsidian";
 import { t } from "./i18n";
 
 /**
- * Bridge to the Accordance Bible app on macOS.
+ * Bridge to the Accordance Bible app on macOS — without running any shell command.
  *
  * Accordance answers the Apple event «event AccdTxRf» {module, reference, citation} with the
- * text of the reference in the given module (or a string starting with "Err" on failure).
- * We ask verse by verse so every verse keeps its number, and run everything in one
- * `osascript` call. Arguments go through argv, never string-interpolated into the script.
+ * text of a reference in one of the user's modules. Versedrop can't send Apple events itself,
+ * so the user creates a small macOS Shortcut ("Versedrop Accordance") that runs the AppleScript
+ * below. Versedrop starts it through the `shortcuts://` URL scheme with an x-callback-url, and
+ * the Shortcut hands the text back through `obsidian://versedrop-accordance`.
  */
 
-const SEP = "\u001e"; // record separator between verses
+export const DEFAULT_SHORTCUT_NAME = "Versedrop Accordance";
+export const CALLBACK_ACTION = "versedrop-accordance";
 
-const SCRIPT = `
-on run argv
-	set moduleName to item 1 of argv
-	set chapterRef to item 2 of argv
-	set verseList to item 3 of argv
-	set rs to character id 30
-	set out to ""
+/** The AppleScript users paste into the Shortcut's "Run AppleScript" action. */
+export const SHORTCUT_APPLESCRIPT = `on run {input, parameters}
+	-- Request from Versedrop: "module|chapter reference|verses" (verses: 16,17,18 or all)
 	set oldDelims to AppleScript's text item delimiters
+	set AppleScript's text item delimiters to "|"
+	set req to text items of ((item 1 of input) as text)
+	set AppleScript's text item delimiters to oldDelims
+	set moduleName to item 1 of req
+	set chapterRef to item 2 of req
+	set verseList to item 3 of req
+	set out to ""
 	if verseList is "all" then
 		set prevText to ""
 		repeat with v from 1 to 200
 			tell application "Accordance" to set r to «event AccdTxRf» {moduleName, chapterRef & ":" & v, false}
 			if r is "" or r starts with "Err" or r is prevText then exit repeat
-			set out to out & v & tab & r & rs
+			set out to out & v & tab & r & linefeed
 			set prevText to r
 		end repeat
 	else
@@ -34,10 +39,9 @@ on run argv
 		set AppleScript's text item delimiters to oldDelims
 		repeat with v in vs
 			tell application "Accordance" to set r to «event AccdTxRf» {moduleName, chapterRef & ":" & (v as text), false}
-			set out to out & (v as text) & tab & r & rs
+			set out to out & (v as text) & tab & r & linefeed
 		end repeat
 	end if
-	set AppleScript's text item delimiters to oldDelims
 	return out
 end run
 `;
@@ -51,11 +55,11 @@ export interface RawVerse {
 	text: string;
 }
 
-/** Parses the osascript output; drops verses Accordance reported as errors. */
+/** Parses the Shortcut output ("16<TAB>text" per line); drops verses Accordance reported as errors. */
 export function parseAccordanceOutput(out: string): { verses: RawVerse[]; errors: number } {
 	const verses: RawVerse[] = [];
 	let errors = 0;
-	for (const rec of out.split(SEP)) {
+	for (const rec of out.split(/\r?\n(?=\s*\d+\t)|\u001e/)) {
 		const tab = rec.indexOf("\t");
 		if (tab < 0) continue;
 		const verse = parseInt(rec.slice(0, tab).trim(), 10);
@@ -72,47 +76,73 @@ export function parseAccordanceOutput(out: string): { verses: RawVerse[]; errors
 	return { verses, errors };
 }
 
-type ExecError = Error & { killed?: boolean };
-
-/** Runs osascript with the fixed script; only available in the desktop app. */
-async function runOsascript(args: string[]): Promise<string> {
-	if (Platform.isDesktop) {
-		// child_process exists only in the desktop app, so it is loaded here, on demand.
-		const childProcess = await import("child_process");
-		return new Promise<string>((resolve, reject) => {
-			childProcess.execFile(
-				"osascript",
-				["-e", SCRIPT, ...args],
-				{ timeout: 30000, maxBuffer: 4 * 1024 * 1024 },
-				(err: ExecError | null, out: string, stderr: string) => {
-					if (err) {
-						const msg = `${stderr || ""} ${err.message || ""}`;
-						if (/-1743|not authori[sz]ed|허용되지/i.test(msg)) reject(new Error(t.accPermission));
-						else if (/-1728|-600|-10814|can.t get application|isn.t running|찾을 수 없/i.test(msg)) reject(new Error(t.accNotFound));
-						else if (err.killed) reject(new Error(t.accTimeout));
-						else reject(new Error(`${t.accFailed} ${String(stderr || err.message).trim()}`));
-						return;
-					}
-					resolve(out);
-				},
-			);
-		});
-	}
-	throw new Error(t.accMacOnly);
+interface Pending {
+	resolve: (out: string) => void;
+	reject: (err: Error) => void;
+	timer: number;
 }
 
 /**
- * @param chapterRef English reference without verse, e.g. "1 Corinthians 13"
- * @param verses     verse numbers to fetch, or "all" for the whole chapter
+ * Runs the user's Shortcut and waits for its x-callback.
+ * Requests run one at a time, because Shortcuts handles one URL-launched run at a time.
  */
-export async function fetchFromAccordance(module: string, chapterRef: string, verses: number[] | "all"): Promise<RawVerse[]> {
-	if (!accordanceAvailable()) throw new Error(t.accMacOnly);
-	if (!module.trim()) throw new Error(t.accNoModule);
+export class AccordanceBridge {
+	private pending = new Map<string, Pending>();
+	private queue: Promise<unknown> = Promise.resolve();
 
-	const verseArg = verses === "all" ? "all" : verses.join(",");
-	const stdout = await runOsascript([module.trim(), chapterRef, verseArg]);
+	constructor(private shortcutName: () => string) {}
 
-	const { verses: result, errors } = parseAccordanceOutput(stdout);
-	if (!result.length && errors) throw new Error(t.accBadModule(module.trim()));
-	return result;
+	/** Called by the obsidian://versedrop-accordance protocol handler. */
+	handleCallback(params: Record<string, string>): void {
+		const p = this.pending.get(params.id ?? "");
+		if (!p) return;
+		this.pending.delete(params.id);
+		window.clearTimeout(p.timer);
+		if (params.status === "ok") p.resolve(params.result ?? "");
+		else if (params.status === "cancel") p.reject(new Error(t.accCancelled));
+		else p.reject(new Error(`${t.accFailed} ${params.errorMessage ?? ""}`.trim()));
+	}
+
+	/**
+	 * @param chapterRef English reference without verse, e.g. "1 Corinthians 13"
+	 * @param verses     verse numbers to fetch, or "all" for the whole chapter
+	 */
+	fetch(module: string, chapterRef: string, verses: number[] | "all"): Promise<RawVerse[]> {
+		const run = this.queue.then(() => this.fetchNow(module, chapterRef, verses));
+		this.queue = run.catch(() => undefined);
+		return run;
+	}
+
+	private async fetchNow(module: string, chapterRef: string, verses: number[] | "all"): Promise<RawVerse[]> {
+		if (!accordanceAvailable()) throw new Error(t.accMacOnly);
+		if (!module.trim()) throw new Error(t.accNoModule);
+
+		const request = [module.trim(), chapterRef, verses === "all" ? "all" : verses.join(",")].join("|");
+		const output = await this.runShortcut(request);
+		const { verses: result, errors } = parseAccordanceOutput(output);
+		if (!result.length && errors) throw new Error(t.accBadModule(module.trim()));
+		if (!result.length && !output.trim()) throw new Error(t.accEmpty);
+		return result;
+	}
+
+	private runShortcut(input: string): Promise<string> {
+		const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+		const back = (status: string) => `obsidian://${CALLBACK_ACTION}?id=${id}&status=${status}`;
+		const url =
+			"shortcuts://x-callback-url/run-shortcut" +
+			`?name=${encodeURIComponent(this.shortcutName().trim() || DEFAULT_SHORTCUT_NAME)}` +
+			`&input=text&text=${encodeURIComponent(input)}` +
+			`&x-success=${encodeURIComponent(back("ok"))}` +
+			`&x-error=${encodeURIComponent(back("error"))}` +
+			`&x-cancel=${encodeURIComponent(back("cancel"))}`;
+
+		return new Promise<string>((resolve, reject) => {
+			const timer = window.setTimeout(() => {
+				this.pending.delete(id);
+				reject(new Error(t.accTimeout));
+			}, 45000);
+			this.pending.set(id, { resolve, reject, timer });
+			window.open(url);
+		});
+	}
 }
