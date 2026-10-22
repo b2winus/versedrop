@@ -373,7 +373,7 @@ export class BibleSource {
 			const raw = await this.app.vault.cachedRead(file);
 			let data: unknown;
 			try {
-				data = JSON.parse(raw.replace(/^﻿/, ""));
+				data = JSON.parse(raw.replace(/^\uFEFF/, ""));
 			} catch {
 				throw new Error(t.errJson(path));
 			}

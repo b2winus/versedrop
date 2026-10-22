@@ -80,9 +80,9 @@ export async function fetchFromAccordance(module: string, chapterRef: string, ve
 	if (!accordanceAvailable()) throw new Error(t.accMacOnly);
 	if (!module.trim()) throw new Error(t.accNoModule);
 
-	// Loaded lazily so the plugin still loads on mobile.
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const { execFile } = require("child_process") as typeof import("child_process");
+	// Node's child_process exists only in the desktop app; load it on demand so the plugin still runs on mobile.
+	if (!Platform.isDesktop) throw new Error(t.accMacOnly);
+	const { execFile } = await import("child_process");
 	const verseArg = verses === "all" ? "all" : verses.join(",");
 
 	const stdout = await new Promise<string>((resolve, reject) => {

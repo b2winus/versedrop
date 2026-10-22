@@ -661,6 +661,13 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 ---
 
+## Support / 후원
+
+If Versedrop helps your study or sermon preparation, you can support its development:
+Versedrop이 묵상과 설교 준비에 도움이 되셨다면 후원으로 응원해 주세요.
+
+[☕ Buy Me a Coffee](https://buymeacoffee.com/4h9fg59wsgd)
+
 ## Development
 
 ```bash

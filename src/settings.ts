@@ -235,6 +235,16 @@ export class VersedropSettingTab extends PluginSettingTab {
 				}),
 			);
 
+		// ── Support ───────────────────────────────────────────────
+		new Setting(containerEl)
+			.setName(t.sSupport)
+			.setDesc(t.sSupportDesc)
+			.addButton((b) =>
+				b
+					.setButtonText("☕ Buy Me a Coffee")
+					.onClick(() => window.open("https://buymeacoffee.com/4h9fg59wsgd")),
+			);
+
 		// ── Help ──────────────────────────────────────────────────
 		new Setting(containerEl).setName(t.sHelp).setHeading();
 		const help = containerEl.createDiv({ cls: "versedrop-help" });
@@ -477,11 +487,11 @@ export class VersedropSettingTab extends PluginSettingTab {
 		row.nameEl.empty();
 		const input = row.nameEl.createEl("input", { type: "text", cls: "versedrop-preset-name", placeholder: t.sPresetNamePlaceholder });
 		input.value = p.name;
-		input.addEventListener("change", async () => {
+		input.addEventListener("change", () => {
 			p.name = input.value.trim();
 			this.plugin.unregisterPreset(p);
 			this.plugin.registerPreset(p);
-			await this.save();
+			void this.save();
 		});
 		row.addExtraButton((x) =>
 			x
@@ -501,12 +511,13 @@ export class VersedropSettingTab extends PluginSettingTab {
 			chip.setAttr("aria-pressed", String(chosen.has(tr.id)));
 			chip.toggleClass("is-active", chosen.has(tr.id));
 			chip.setAttr("title", tr.name);
-			chip.addEventListener("click", async () => {
+			chip.addEventListener("click", () => {
 				if (chosen.has(tr.id)) chosen.delete(tr.id);
 				else chosen.add(tr.id);
 				chip.toggleClass("is-active", chosen.has(tr.id));
+				chip.setAttr("aria-pressed", String(chosen.has(tr.id)));
 				p.translations = this.plugin.allTranslations().map((x) => x.id).filter((id) => chosen.has(id));
-				await this.save();
+				void this.save();
 			});
 		}
 	}

@@ -1,3 +1,5 @@
+import { getLanguage, moment } from "obsidian";
+
 export interface HelpTopic {
 	title: string;
 	paras: string[];
@@ -150,6 +152,8 @@ const ko = {
 	sClear: "비우기",
 	sCleared: "캐시를 비웠어요.",
 	sHelp: "도움말",
+	sSupport: "Versedrop 후원하기",
+	sSupportDesc: "플러그인이 도움이 되셨다면 커피 한 잔으로 응원해 주세요.",
 
 	help: [
 		{
@@ -383,6 +387,8 @@ const en: typeof ko = {
 	sClear: "Clear",
 	sCleared: "Cache cleared.",
 	sHelp: "Help",
+	sSupport: "Support Versedrop",
+	sSupportDesc: "If Versedrop helps you, you can buy me a coffee.",
 
 	help: [
 		{
@@ -473,11 +479,12 @@ const en: typeof ko = {
 
 function uiLang(): "ko" | "en" {
 	try {
-		const l = window.localStorage.getItem("language") ?? "";
-		return l.startsWith("ko") ? "ko" : "en";
+		// getLanguage() exists from Obsidian 1.8; moment's locale follows the app language on older versions.
+		const l = typeof getLanguage === "function" ? getLanguage() : moment.locale();
+		return (l ?? "").startsWith("ko") ? "ko" : "en";
 	} catch {
 		return "en";
 	}
 }
 
-export const t: typeof ko = typeof window !== "undefined" && uiLang() === "ko" ? ko : en;
+export const t: typeof ko = uiLang() === "ko" ? ko : en;
