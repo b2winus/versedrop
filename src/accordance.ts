@@ -72,6 +72,35 @@ export function parseAccordanceOutput(out: string): { verses: RawVerse[]; errors
 	return { verses, errors };
 }
 
+type ExecError = Error & { killed?: boolean };
+
+/** Runs osascript with the fixed script; only available in the desktop app. */
+async function runOsascript(args: string[]): Promise<string> {
+	if (Platform.isDesktop) {
+		// child_process exists only in the desktop app, so it is loaded here, on demand.
+		const childProcess = await import("child_process");
+		return new Promise<string>((resolve, reject) => {
+			childProcess.execFile(
+				"osascript",
+				["-e", SCRIPT, ...args],
+				{ timeout: 30000, maxBuffer: 4 * 1024 * 1024 },
+				(err: ExecError | null, out: string, stderr: string) => {
+					if (err) {
+						const msg = `${stderr || ""} ${err.message || ""}`;
+						if (/-1743|not authori[sz]ed|허용되지/i.test(msg)) reject(new Error(t.accPermission));
+						else if (/-1728|-600|-10814|can.t get application|isn.t running|찾을 수 없/i.test(msg)) reject(new Error(t.accNotFound));
+						else if (err.killed) reject(new Error(t.accTimeout));
+						else reject(new Error(`${t.accFailed} ${String(stderr || err.message).trim()}`));
+						return;
+					}
+					resolve(out);
+				},
+			);
+		});
+	}
+	throw new Error(t.accMacOnly);
+}
+
 /**
  * @param chapterRef English reference without verse, e.g. "1 Corinthians 13"
  * @param verses     verse numbers to fetch, or "all" for the whole chapter
@@ -80,29 +109,8 @@ export async function fetchFromAccordance(module: string, chapterRef: string, ve
 	if (!accordanceAvailable()) throw new Error(t.accMacOnly);
 	if (!module.trim()) throw new Error(t.accNoModule);
 
-	// Node's child_process exists only in the desktop app; load it on demand so the plugin still runs on mobile.
-	if (!Platform.isDesktop) throw new Error(t.accMacOnly);
-	const { execFile } = await import("child_process");
 	const verseArg = verses === "all" ? "all" : verses.join(",");
-
-	const stdout = await new Promise<string>((resolve, reject) => {
-		execFile(
-			"osascript",
-			["-e", SCRIPT, module.trim(), chapterRef, verseArg],
-			{ timeout: 30000, maxBuffer: 4 * 1024 * 1024 },
-			(err, out, stderr) => {
-				if (err) {
-					const msg = `${stderr || ""} ${err.message || ""}`;
-					if (/-1743|not authori[sz]ed|허용되지/i.test(msg)) reject(new Error(t.accPermission));
-					else if (/-1728|-600|-10814|can.t get application|isn.t running|찾을 수 없/i.test(msg)) reject(new Error(t.accNotFound));
-					else if ((err as NodeJS.ErrnoException & { killed?: boolean }).killed) reject(new Error(t.accTimeout));
-					else reject(new Error(`${t.accFailed} ${String(stderr || err.message).trim()}`));
-					return;
-				}
-				resolve(out);
-			},
-		);
-	});
+	const stdout = await runOsascript([module.trim(), chapterRef, verseArg]);
 
 	const { verses: result, errors } = parseAccordanceOutput(stdout);
 	if (!result.length && errors) throw new Error(t.accBadModule(module.trim()));

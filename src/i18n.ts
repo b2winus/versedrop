@@ -1,4 +1,4 @@
-import { getLanguage, moment } from "obsidian";
+import { getLanguage } from "obsidian";
 
 export interface HelpTopic {
 	title: string;
@@ -479,9 +479,7 @@ const en: typeof ko = {
 
 function uiLang(): "ko" | "en" {
 	try {
-		// getLanguage() exists from Obsidian 1.8; moment's locale follows the app language on older versions.
-		const l = typeof getLanguage === "function" ? getLanguage() : moment.locale();
-		return (l ?? "").startsWith("ko") ? "ko" : "en";
+		return (getLanguage() ?? "").startsWith("ko") ? "ko" : "en";
 	} catch {
 		return "en";
 	}
