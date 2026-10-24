@@ -1,5 +1,7 @@
 import {
+	AbstractInputSuggest,
 	App,
+	FuzzySuggestModal,
 	Menu,
 	Modal,
 	Notice,
@@ -9,6 +11,8 @@ import {
 	SettingDefinitionItem,
 	SettingDefinitionPage,
 	SettingPage,
+	TFile,
+	normalizePath,
 } from "obsidian";
 import type VersedropPlugin from "./main";
 import { accordanceAvailable } from "./accordance";
@@ -20,6 +24,57 @@ import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./sett
 import { BUILT_IN_TRANSLATIONS, Lang, LANGS, Translation } from "./sources";
 
 const SUPPORT_URL = "https://buymeacoffee.com/4h9fg59wsgd";
+/** Vault folder that imported Bible JSON files are copied into. */
+const IMPORT_FOLDER = "Versedrop Bibles";
+
+function jsonFiles(app: App): TFile[] {
+	return app.vault
+		.getFiles()
+		.filter((f) => f.extension.toLowerCase() === "json" && !f.path.startsWith(".") && !f.path.includes("/."))
+		.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** Autocompletes JSON file paths while typing in the path field. */
+class JsonFileSuggest extends AbstractInputSuggest<TFile> {
+	protected getSuggestions(query: string): TFile[] {
+		const q = query.toLowerCase();
+		return jsonFiles(this.app).filter((f) => f.path.toLowerCase().includes(q));
+	}
+
+	renderSuggestion(file: TFile, el: HTMLElement): void {
+		el.setText(file.path);
+	}
+
+	selectSuggestion(file: TFile, evt: MouseEvent | KeyboardEvent): void {
+		super.selectSuggestion(file, evt);
+		this.setValue(file.path);
+		this.close();
+	}
+}
+
+/** Lists every JSON file in the vault to pick one. */
+class JsonFileModal extends FuzzySuggestModal<TFile> {
+	constructor(
+		app: App,
+		private onPick: (file: TFile) => void,
+	) {
+		super(app);
+		this.setPlaceholder(t.sPickInVaultPlaceholder);
+		this.emptyStateText = t.sNoJsonInVault;
+	}
+
+	getItems(): TFile[] {
+		return jsonFiles(this.app);
+	}
+
+	getItemText(file: TFile): string {
+		return file.path;
+	}
+
+	onChooseItem(file: TFile): void {
+		this.onPick(file);
+	}
+}
 
 /** Settings tab built on Obsidian's declarative settings API (1.13+), so every option is searchable. */
 export class VersedropSettingTab extends PluginSettingTab {
@@ -430,7 +485,8 @@ export class TranslationModal extends Modal {
 
 		const label = tr.source === "bolls" ? t.sCode : tr.source === "file" ? t.sPath : t.sModule;
 		const current = (tr.source === "bolls" ? tr.code : tr.source === "file" ? tr.path : tr.module) ?? "";
-		const src = new Setting(contentEl).setName(label).addText((x) =>
+		const src = new Setting(contentEl).setName(label).addText((x) => {
+			this.pathInput = x.inputEl;
 			x.setValue(current).onChange((v) => {
 				const val = v.trim();
 				if (tr.source === "bolls") tr.code = val;
@@ -438,8 +494,34 @@ export class TranslationModal extends Modal {
 				else tr.module = val;
 				this.plugin.source.clearCache();
 				save();
-			}),
-		);
+			});
+			if (tr.source === "file") {
+				x.setPlaceholder(t.sPathPlaceholder);
+				new JsonFileSuggest(this.app, x.inputEl).onSelect((file) => void this.useFile(file.path));
+			}
+		});
+		if (tr.source === "file") {
+			src.setDesc(t.sPathDesc);
+			src.addExtraButton((b) =>
+				b
+					.setIcon("folder-search")
+					.setTooltip(t.sPickInVault)
+					.onClick(() => new JsonFileModal(this.app, (file) => void this.useFile(file.path)).open()),
+			);
+			src.addExtraButton((b) =>
+				b
+					.setIcon("upload")
+					.setTooltip(t.sImportFile)
+					.onClick(() => this.importFromComputer()),
+			);
+			new Setting(contentEl)
+				.setName(t.sImportFile)
+				.setDesc(t.sImportFileDesc)
+				.addButton((b) => b.setButtonText(t.sChooseFile).setCta().onClick(() => this.importFromComputer()))
+				.addButton((b) =>
+					b.setButtonText(t.sPickInVault).onClick(() => new JsonFileModal(this.app, (file) => void this.useFile(file.path)).open()),
+				);
+		}
 		if (tr.source === "accordance") {
 			src.addButton((b) =>
 				b.setButtonText(t.sTest).onClick(() => {
@@ -490,6 +572,61 @@ export class TranslationModal extends Modal {
 	}
 
 	private coverageEl!: HTMLElement;
+	private pathInput?: HTMLInputElement;
+
+	/** Sets the JSON path, checks the file and reports what it contains. */
+	private async useFile(path: string): Promise<void> {
+		const tr = this.tr;
+		tr.path = path;
+		if (this.pathInput) this.pathInput.value = path;
+		this.plugin.source.clearCache();
+		try {
+			const info = await this.plugin.source.inspectFile(path);
+			tr.testament = info.ot && info.nt ? undefined : info.ot ? "OT" : "NT";
+			if (!tr.name) {
+				const base = path.split("/").pop()?.replace(/\.json$/i, "") ?? "";
+				tr.name = base;
+				tr.abbr = base;
+			}
+			const scope = info.ot && info.nt ? t.sTestAll : info.ot ? t.sTestOT : t.sTestNT;
+			new Notice(t.fileOk(info.chapters, info.verses, scope), 8000);
+			this.renderCoverage();
+		} catch (e) {
+			new Notice((e as Error).message, 12000);
+		}
+		await this.plugin.saveSettings();
+	}
+
+	/** Lets the user pick a JSON file from their computer, copies it into the vault and uses it. */
+	private importFromComputer(): void {
+		const input = createEl("input", { attr: { type: "file", accept: ".json,application/json" } });
+		input.addEventListener("change", () => {
+			const file = input.files?.[0];
+			if (!file) return;
+			void file.text().then(async (text) => {
+				try {
+					JSON.parse(text.replace(/^\uFEFF/, ""));
+				} catch {
+					new Notice(t.errJson(file.name), 10000);
+					return;
+				}
+				const folder = IMPORT_FOLDER;
+				if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+				const safe = file.name.replace(/[\\/:*?"<>|]/g, "_");
+				let path = normalizePath(`${folder}/${safe}`);
+				const existing = this.app.vault.getAbstractFileByPath(path);
+				if (existing instanceof TFile) await this.app.vault.modify(existing, text);
+				else {
+					if (existing) path = normalizePath(`${folder}/${Date.now()}-${safe}`);
+					await this.app.vault.create(path, text);
+				}
+				new Notice(t.fileImported(path), 6000);
+				await this.useFile(path);
+			});
+		});
+		input.click();
+	}
+
 
 	/** "Contains" dropdown: whole Bible, OT only or NT only (hides cards for books the module lacks). */
 	private renderCoverage(): void {

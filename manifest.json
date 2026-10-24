@@ -1,7 +1,7 @@
 {
 	"id": "versedrop",
 	"name": "Versedrop",
-	"version": "0.6.2",
+	"version": "0.6.3",
 	"minAppVersion": "1.13.0",
 	"description": "Search a Bible reference and insert the passage in Korean, English, Chinese, Japanese, Greek or Hebrew, with copyright notices.",
 	"author": "Paul Hong",

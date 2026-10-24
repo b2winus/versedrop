@@ -367,9 +367,29 @@ export class BibleSource {
 		return verses;
 	}
 
+	/** Reads and checks a Bible JSON file in the vault: how many chapters/verses, which testaments. */
+	async inspectFile(path: string): Promise<{ chapters: number; verses: number; ot: boolean; nt: boolean }> {
+		const index = await this.loadFile(path);
+		let verses = 0;
+		let ot = false;
+		let nt = false;
+		for (const [key, list] of index) {
+			verses += list.length;
+			const book = parseInt(key, 10);
+			if (book <= 39) ot = true;
+			else nt = true;
+		}
+		return { chapters: index.size, verses, ot, nt };
+	}
+
 	private async fromFile(tr: Translation, book: number, chapter: number): Promise<Verse[]> {
 		if (!tr.path) throw new Error(t.errNoPath);
-		const path = normalizePath(tr.path);
+		const index = await this.loadFile(tr.path);
+		return index.get(`${book}:${chapter}`) ?? [];
+	}
+
+	private async loadFile(rawPath: string): Promise<ChapterMap> {
+		const path = normalizePath(rawPath);
 		let index = this.fileCache.get(path);
 		if (!index) {
 			const file = this.app.vault.getAbstractFileByPath(path);
@@ -385,6 +405,6 @@ export class BibleSource {
 			if (index.size === 0) throw new Error(t.errJsonFormat);
 			this.fileCache.set(path, index);
 		}
-		return index.get(`${book}:${chapter}`) ?? [];
+		return index;
 	}
 }

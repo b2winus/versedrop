@@ -245,7 +245,12 @@ The *Add your own* group at the bottom of the **Add a translation** (+) menu off
 
 The full list is at <https://bolls.life/static/bolls/app/views/languages.json>. Please respect each translation's license.
 
-**JSON file** — put a Bible JSON file you are licensed to use somewhere in your vault and enter its path, e.g. `Bibles/esv.json`. Three layouts are recognised:
+**JSON file** — for a Bible JSON file you are licensed to use. No need to type a path:
+
+- **Import from computer** → choose the file. It is copied into the `Versedrop Bibles` folder in your vault and connected automatically.
+- **Pick from vault** (🔍) → search the JSON files already in your vault by name, or just start typing in the field to autocomplete.
+
+Versedrop then checks the file and shows how many chapters and verses it found and whether it covers the OT, the NT or both. Three layouts are recognised:
 
 ```jsonc
 // A. array (bolls.life dump format)
@@ -563,7 +568,12 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 전체 목록은 <https://bolls.life/static/bolls/app/views/languages.json> 에서 볼 수 있어요. 각 역본의 저작권을 지켜 주세요.
 
-**JSON 파일** — 사용 권한이 있는 성경 JSON 파일을 볼트에 넣고 경로를 입력합니다. 예: `Bibles/nkrv.json`. 세 가지 형식을 인식해요.
+**JSON 파일** — 사용 권한이 있는 성경 JSON 파일을 연결해요. 경로를 직접 칠 필요가 없어요.
+
+- **컴퓨터에서 불러오기** → 파일을 고르면 볼트의 `Versedrop Bibles` 폴더로 복사되고 자동으로 연결돼요.
+- **볼트에서 고르기**(🔍) → 이미 볼트에 있는 JSON 파일을 이름으로 찾아 골라요. 입력 칸에 글자를 치기 시작해도 자동완성돼요.
+
+연결하면 Versedrop이 파일을 확인해서 몇 장·몇 절을 읽었는지, 구약·신약 중 어디가 들어 있는지 알려 줘요. 세 가지 형식을 인식해요.
 
 ```jsonc
 // A. 배열 (bolls.life 덤프 형식)
