@@ -400,7 +400,7 @@ class HelpPage extends SettingPage {
 }
 
 /** Edits a translation the user added (Accordance module, bolls.life code or JSON file). */
-class TranslationModal extends Modal {
+export class TranslationModal extends Modal {
 	constructor(
 		app: App,
 		private plugin: VersedropPlugin,
@@ -445,12 +445,10 @@ class TranslationModal extends Modal {
 				b.setButtonText(t.sTest).onClick(() => {
 					b.setDisabled(true);
 					const waiting = new Notice(t.accRunning, 0);
-					this.plugin.source.clearCache();
-					this.plugin.source
-						.getPassage({ ...tr, id: `${tr.id}-test` }, parseReference("John 3:16"))
-						.then((verses) => {
-							const text = verses[0]?.text ?? "";
-							new Notice(t.accTestOk(tr.module ?? "", text.length > 80 ? `${text.slice(0, 80)}…` : text), 8000);
+					void this.testCoverage(tr)
+						.then((msg) => {
+							new Notice(msg, 10000);
+							this.renderCoverage();
 						})
 						.catch((e: Error) => new Notice(e.message, 15000))
 						.finally(() => {
@@ -471,6 +469,9 @@ class TranslationModal extends Modal {
 				}),
 		);
 
+		this.coverageEl = contentEl.createDiv();
+		this.renderCoverage();
+
 		const known = knownCitation(tr.name, tr.module, tr.code);
 		new Setting(contentEl)
 			.setName(t.sCitation)
@@ -486,6 +487,56 @@ class TranslationModal extends Modal {
 			});
 
 		new Setting(contentEl).addButton((b) => b.setButtonText(t.sDone).setCta().onClick(() => this.close()));
+	}
+
+	private coverageEl!: HTMLElement;
+
+	/** "Contains" dropdown: whole Bible, OT only or NT only (hides cards for books the module lacks). */
+	private renderCoverage(): void {
+		const tr = this.tr;
+		this.coverageEl.empty();
+		new Setting(this.coverageEl)
+			.setName(t.sTestament)
+			.setDesc(t.sTestamentDesc)
+			.addDropdown((d) =>
+				d
+					.addOptions({ all: t.sTestAll, OT: t.sTestOT, NT: t.sTestNT })
+					.setValue(tr.testament ?? "all")
+					.onChange((v) => {
+						tr.testament = v === "all" ? undefined : (v as "OT" | "NT");
+						void this.plugin.saveSettings();
+					}),
+			);
+	}
+
+	/**
+	 * Tries an OT and an NT verse (Hebrew modules are usually OT only, Greek ones NT or LXX),
+	 * then records which testaments the module covers.
+	 */
+	private async testCoverage(tr: Translation): Promise<string> {
+		this.plugin.source.clearCache();
+		const probe = { ...tr, id: `${tr.id}-test`, testament: undefined };
+		const order = tr.lang === "he" ? ["Gen 1:1", "John 1:1"] : ["John 3:16", "Gen 1:1"];
+		const found: Record<string, string> = {};
+		let lastError: Error | null = null;
+		for (const q of order) {
+			try {
+				const verses = await this.plugin.source.getPassage(probe, parseReference(q));
+				if (verses.length) found[q.startsWith("Gen") ? "OT" : "NT"] = `${q} ${verses[0].text}`;
+			} catch (e) {
+				lastError = e as Error;
+				// Stop early on errors that are not about a missing book (permission, Accordance missing …)
+				if (!/찾지 못했어요|found no text/.test(lastError.message)) throw lastError;
+			}
+		}
+		const ot = !!found.OT;
+		const nt = !!found.NT;
+		if (!ot && !nt) throw lastError ?? new Error(t.accBadModule(tr.module ?? ""));
+		tr.testament = ot && nt ? undefined : ot ? "OT" : "NT";
+		await this.plugin.saveSettings();
+		const sample = (found.NT ?? found.OT ?? "").slice(0, 70);
+		const scope = ot && nt ? t.sTestAll : ot ? t.sTestOT : t.sTestNT;
+		return t.accTestCoverage(tr.module ?? "", scope, sample);
 	}
 
 	onClose(): void {

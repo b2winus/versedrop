@@ -196,7 +196,7 @@ If you own Bible modules in [Accordance](https://www.accordancebible.com), Verse
    - **Name** — what you want to see, e.g. `ESV` or `개역개정`.
    - **Accordance module** — exactly as Accordance shows it in the Library or a text tab (case and hyphens matter), e.g. `ESVS`.
    - **Language** — which language chip it appears under.
-3. Click **Test connection**. Versedrop asks Accordance for John 3:16.
+3. Click **Test connection**. Versedrop asks Accordance for an OT and an NT verse (Genesis 1 and John) and sets **Contains** to *OT + NT*, *OT only* or *NT only* — so Hebrew OT modules (BHS, WLC) and Greek NT or LXX modules are recognised correctly, and their cards only appear for books they contain.
 4. The first time, macOS asks *"Obsidian wants access to control Accordance"* — click **Allow**.
 5. A notice shows the verse when it works. Repeat for each module.
 
@@ -514,7 +514,7 @@ Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500�
    - **이름** — 검색 창에 보일 이름. 예: `개역개정`, `ESV`
    - **Accordance 모듈** — Accordance 라이브러리나 텍스트 탭에 보이는 약어와 **똑같이** (대소문자, 하이픈 포함). 예: `ESVS`
    - **언어** — 검색 창의 어느 언어 버튼에 나올지 정해요.
-3. **연결 확인**을 누르면 Accordance에 요한복음 3:16을 요청해요.
+3. **연결 확인**을 누르면 Accordance에 구약과 신약 구절(창세기 1장, 요한복음)을 모두 요청해서 **들어 있는 범위**를 *구약 + 신약*, *구약만*, *신약만* 중 하나로 자동으로 정해요. 그래서 히브리어 구약(BHS, WLC)이나 헬라어 신약·LXX 모듈도 제대로 인식되고, 그 모듈에 있는 책을 검색할 때만 카드가 나와요.
 4. 처음에는 macOS가 *"Obsidian이(가) Accordance을(를) 제어하려고 합니다"* 라고 물어요. **허용**을 눌러 주세요.
 5. 성공하면 본문이 알림으로 떠요. 쓰고 싶은 모듈마다 반복하세요.
 
