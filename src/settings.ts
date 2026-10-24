@@ -20,8 +20,6 @@ export interface VersedropSettings extends FormatOptions {
 	presets: Preset[];
 	/** Display order of translation ids (built-in and custom) */
 	order: string[];
-	/** Name of the macOS Shortcut that talks to Accordance */
-	accordanceShortcut: string;
 	/** Personal ESV API key (api.esv.org) */
 	esvApiKey: string;
 	/** Warn when a copyrighted translation is quoted beyond this many verses at once (0 = never) */
@@ -48,7 +46,6 @@ export const DEFAULT_SETTINGS: VersedropSettings = {
 	logosVersion: "",
 	accordanceModule: "",
 	citations: "copyrighted",
-	accordanceShortcut: "Versedrop Accordance",
 	esvApiKey: "",
 	quoteWarn: 50,
 };

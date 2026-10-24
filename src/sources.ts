@@ -23,8 +23,6 @@ export interface Translation {
 	path?: string;
 	/** Accordance module abbreviation, e.g. ESVS (source = accordance) */
 	module?: string;
-	/** Accordance module for New Testament books when OT and NT come from different modules, e.g. BHS-W4 + NA28-T */
-	ntModule?: string;
 	/** Licensing note shown in settings */
 	note?: string;
 	/** Copyright notice added under quotations (custom translations; built-ins use `notice`) */
@@ -125,26 +123,6 @@ export const BUILT_IN_TRANSLATIONS: Translation[] = [
 ];
 
 /** Whether the translation contains this book (Greek NT, Hebrew OT …). */
-/** The Accordance module that holds this book: the NT module for Matthew–Revelation when one is set. */
-export function accordanceModuleFor(tr: Translation, bookNum: number): string {
-	if (bookNum >= 40 && tr.ntModule?.trim()) return tr.ntModule.trim();
-	return tr.module ?? "";
-}
-
-/** How much of the Bible an Accordance translation covers, as shown in its settings. */
-export type Coverage = "all" | "OT" | "NT" | "split";
-
-export function coverageOf(tr: Translation): Coverage {
-	if (tr.testament) return tr.testament;
-	return tr.ntModule?.trim() ? "split" : "all";
-}
-
-export function setCoverage(tr: Translation, c: Coverage): void {
-	tr.testament = c === "OT" || c === "NT" ? c : undefined;
-	if (c !== "split") delete tr.ntModule;
-	else tr.ntModule ??= "";
-}
-
 export function hasBook(tr: Translation, bookNum: number): boolean {
 	if (tr.testament === "OT") return bookNum <= 39;
 	if (tr.testament === "NT") return bookNum >= 40;
@@ -255,7 +233,7 @@ export function parseNetJson(rows: unknown, chapter: number): Verse[] {
 	if (!Array.isArray(rows)) return [];
 	return (rows as Record<string, unknown>[])
 		.filter((r) => parseInt(String(r.chapter), 10) === chapter)
-		.map((r) => ({ verse: parseInt(String(r.verse), 10), text: cleanText(typeof r.text === "string" ? r.text : "") }))
+		.map((r) => ({ verse: parseInt(String(r.verse), 10), text: cleanText(String(r.text ?? "")) }))
 		.filter((v) => v.verse && v.text);
 }
 
@@ -383,8 +361,7 @@ export class BibleSource {
 			? ref.ranges.flatMap((r) => Array.from({ length: Math.min(r.end - r.start + 1, 200) }, (_, i) => r.start + i))
 			: "all";
 		const bookName = ref.book.num === 22 ? "Song" : ref.book.en;
-		const module = accordanceModuleFor(tr, ref.book.num);
-		const raw = await this.accordance.fetch(module, `${bookName} ${ref.chapter}`, wanted);
+		const raw = await this.accordance.fetch(tr.module ?? "", `${bookName} ${ref.chapter}`, wanted);
 		const verses = raw.map((v) => ({ verse: v.verse, text: cleanText(v.text) })).filter((v) => v.text);
 		if (verses.length) this.chapterCache.set(key, verses);
 		return verses;

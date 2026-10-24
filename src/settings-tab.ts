@@ -11,13 +11,13 @@ import {
 	SettingPage,
 } from "obsidian";
 import type VersedropPlugin from "./main";
-import { accordanceAvailable, SHORTCUT_APPLESCRIPT } from "./accordance";
+import { accordanceAvailable } from "./accordance";
 import { knownCitation } from "./citations";
 import { HelpTopic, t } from "./i18n";
 import { hotkeysFor, openHotkeySettings } from "./hotkeys";
 import { parseReference } from "./reference";
-import { DEFAULT_SETTINGS, Preset, sortByOrder } from "./settings";
-import { BUILT_IN_TRANSLATIONS, Coverage, coverageOf, Lang, LANGS, setCoverage, Translation } from "./sources";
+import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./settings";
+import { BUILT_IN_TRANSLATIONS, Lang, LANGS, Translation } from "./sources";
 
 const SUPPORT_URL = "https://buymeacoffee.com/4h9fg59wsgd";
 
@@ -96,33 +96,6 @@ export class VersedropSettingTab extends PluginSettingTab {
 									.onClick(() => window.open("https://api.esv.org/account/create-application/")),
 							);
 						},
-					},
-				],
-			},
-			// ── Accordance (Mac) ─────────────────────────────────────
-			{
-				type: "group",
-				heading: t.sAccGroup,
-				visible: () => accordanceAvailable() || this.plugin.settings.custom.some((c) => c.source === "accordance"),
-				items: [
-					{
-						name: t.sAccShortcut,
-						desc: t.sAccShortcutDesc,
-						aliases: ["accordance", "shortcuts", "단축어"],
-						control: { type: "text", key: "accordanceShortcut", placeholder: "Versedrop Accordance" },
-					},
-					{
-						name: t.sAccCopy,
-						desc: t.sAccCopyDesc,
-						aliases: ["applescript"],
-						action: () => {
-							void navigator.clipboard.writeText(SHORTCUT_APPLESCRIPT).then(() => new Notice(t.sAccCopied, 6000));
-						},
-					},
-					{
-						type: "page",
-						name: t.sAccHowTo,
-						page: () => new HelpPage(t.help.find((h) => h.title.includes("Accordance")) ?? t.help[0]),
 					},
 				],
 			},
@@ -280,14 +253,14 @@ export class VersedropSettingTab extends PluginSettingTab {
 		const s = this.plugin.settings;
 		const lang = t.langName[tr.lang];
 		const custom = !tr.builtIn;
-		const kind = tr.source === "bolls" ? `bolls.life ${tr.code ?? ""}` : tr.source === "file" ? `JSON ${tr.path ?? ""}` : accordanceSummary(tr);
+		const kind = tr.source === "bolls" ? `bolls.life ${tr.code ?? ""}` : tr.source === "file" ? `JSON ${tr.path ?? ""}` : `Accordance ${tr.module ?? ""}`;
 		const name = custom ? tr.name || t.sUnnamed : `${tr.name}${tr.abbr !== tr.name ? ` (${tr.abbr})` : ""}`;
 		const desc = custom ? `${lang} · ${kind.trim()}` : `${lang} · ${tr.note ?? ""}`;
 
 		return {
 			name,
 			desc,
-			aliases: [tr.abbr, tr.code ?? "", tr.module ?? "", tr.ntModule ?? ""].filter(Boolean),
+			aliases: [tr.abbr, tr.code ?? "", tr.module ?? ""].filter(Boolean),
 			render: (setting) => {
 				const on = s.picked.includes(tr.id);
 				setting.addExtraButton((x) =>
@@ -455,18 +428,35 @@ class TranslationModal extends Modal {
 				}),
 		);
 
+		const label = tr.source === "bolls" ? t.sCode : tr.source === "file" ? t.sPath : t.sModule;
+		const current = (tr.source === "bolls" ? tr.code : tr.source === "file" ? tr.path : tr.module) ?? "";
+		const src = new Setting(contentEl).setName(label).addText((x) =>
+			x.setValue(current).onChange((v) => {
+				const val = v.trim();
+				if (tr.source === "bolls") tr.code = val;
+				else if (tr.source === "file") tr.path = val;
+				else tr.module = val;
+				this.plugin.source.clearCache();
+				save();
+			}),
+		);
 		if (tr.source === "accordance") {
-			this.renderAccordance(contentEl, save);
-		} else {
-			const label = tr.source === "bolls" ? t.sCode : t.sPath;
-			const current = (tr.source === "bolls" ? tr.code : tr.path) ?? "";
-			new Setting(contentEl).setName(label).addText((x) =>
-				x.setValue(current).onChange((v) => {
-					const val = v.trim();
-					if (tr.source === "bolls") tr.code = val;
-					else tr.path = val;
+			src.addButton((b) =>
+				b.setButtonText(t.sTest).onClick(() => {
+					b.setDisabled(true);
+					const waiting = new Notice(t.accRunning, 0);
 					this.plugin.source.clearCache();
-					save();
+					this.plugin.source
+						.getPassage({ ...tr, id: `${tr.id}-test` }, parseReference("John 3:16"))
+						.then((verses) => {
+							const text = verses[0]?.text ?? "";
+							new Notice(t.accTestOk(tr.module ?? "", text.length > 80 ? `${text.slice(0, 80)}…` : text), 8000);
+						})
+						.catch((e: Error) => new Notice(e.message, 15000))
+						.finally(() => {
+							waiting.hide();
+							b.setDisabled(false);
+						});
 				}),
 			);
 		}
@@ -477,11 +467,6 @@ class TranslationModal extends Modal {
 				.setValue(tr.lang)
 				.onChange((v) => {
 					tr.lang = v as Lang;
-					// Hebrew modules only cover the Old Testament.
-					if (tr.source === "accordance" && tr.lang === "he" && coverageOf(tr) === "all") {
-						setCoverage(tr, "OT");
-						this.redraw();
-					}
 					save();
 				}),
 		);
@@ -507,99 +492,6 @@ class TranslationModal extends Modal {
 		this.contentEl.empty();
 		void this.plugin.saveSettings().then(() => this.onDone());
 	}
-
-	private redraw(): void {
-		this.contentEl.empty();
-		this.onOpen();
-	}
-
-	/** Coverage (whole Bible, OT only, NT only, or one module per testament), module fields, and a test button. */
-	private renderAccordance(el: HTMLElement, save: () => void): void {
-		const tr = this.tr;
-		const coverage = coverageOf(tr);
-
-		new Setting(el)
-			.setName(t.sCoverage)
-			.setDesc(t.sCoverageDesc)
-			.addDropdown((d) =>
-				d
-					.addOptions({ all: t.sCoverageAll, OT: t.sCoverageOT, NT: t.sCoverageNT, split: t.sCoverageSplit })
-					.setValue(coverage)
-					.onChange((v) => {
-						setCoverage(tr, v as Coverage);
-						this.plugin.source.clearCache();
-						save();
-						this.redraw();
-					}),
-			);
-
-		const moduleRow = (name: string, value: string, set: (v: string) => void) =>
-			new Setting(el).setName(name).addText((x) =>
-				x.setValue(value).onChange((v) => {
-					set(v.trim());
-					this.plugin.source.clearCache();
-					save();
-				}),
-			);
-		moduleRow(coverage === "split" ? t.sModuleOT : t.sModule, tr.module ?? "", (v) => (tr.module = v));
-		if (coverage === "split") moduleRow(t.sModuleNT, tr.ntModule ?? "", (v) => (tr.ntModule = v));
-
-		new Setting(el)
-			.setName(t.sTest)
-			.setDesc(t.sTestDesc)
-			.addButton((b) =>
-				b.setButtonText(t.sTest).onClick(() => {
-					b.setDisabled(true);
-					void this.testAccordance().finally(() => b.setDisabled(false));
-				}),
-			);
-	}
-
-	/**
-	 * Tests each testament the translation covers with a verse from that testament
-	 * (Genesis 1:1 for the OT, John 3:16 for the NT), so an OT-only Hebrew module
-	 * or an NT-only Greek module isn't reported as broken.
-	 * When "whole Bible" is selected and only one testament works, coverage is set to it.
-	 */
-	private async testAccordance(): Promise<void> {
-		const tr = this.tr;
-		const coverage = coverageOf(tr);
-		const cases: { testament: "OT" | "NT"; ref: string; module: string }[] = [];
-		if (coverage !== "NT") cases.push({ testament: "OT", ref: "Genesis 1:1", module: tr.module ?? "" });
-		if (coverage !== "OT") cases.push({ testament: "NT", ref: "John 3:16", module: coverage === "split" ? (tr.ntModule ?? "") : (tr.module ?? "") });
-
-		const results: { testament: "OT" | "NT"; module: string; ok: boolean; detail: string }[] = [];
-		for (const c of cases) {
-			// Test the module on its own, without the coverage limits being tested.
-			const probe: Translation = { ...tr, id: `${tr.id}-test-${c.testament}`, module: c.module, ntModule: undefined, testament: undefined };
-			try {
-				const verses = await this.plugin.source.getPassage(probe, parseReference(c.ref));
-				const text = verses[0]?.text ?? "";
-				results.push({ ...c, ok: !!text, detail: text ? (text.length > 60 ? `${text.slice(0, 60)}…` : text) : t.noVerses });
-			} catch (e) {
-				results.push({ ...c, ok: false, detail: e instanceof Error ? e.message : String(e) });
-			}
-		}
-
-		const lines = results.map((r) => `${r.ok ? "✓" : "✗"} ${r.testament === "OT" ? t.sTestOT : t.sTestNT} (${r.module || "—"}): ${r.detail}`);
-		const okOnly = results.filter((r) => r.ok);
-		if (coverage === "all" && results.length === 2 && okOnly.length === 1) {
-			setCoverage(tr, okOnly[0].testament);
-			this.plugin.source.clearCache();
-			await this.plugin.saveSettings();
-			lines.push(t.accCoverageAuto(okOnly[0].testament === "OT" ? t.sCoverageOT : t.sCoverageNT));
-			this.redraw();
-		}
-		new Notice(lines.join("\n"), okOnly.length === results.length ? 8000 : 15000);
-	}
-}
-
-/** "Accordance BHS-W4 + NA28-T", "Accordance BHS-W4 · Old Testament only" … */
-function accordanceSummary(tr: Translation): string {
-	const coverage = coverageOf(tr);
-	if (coverage === "split") return `Accordance ${tr.module ?? ""} + ${tr.ntModule ?? ""}`;
-	const scope = coverage === "OT" ? ` · ${t.sCoverageOT}` : coverage === "NT" ? ` · ${t.sCoverageNT}` : "";
-	return `Accordance ${tr.module ?? ""}${scope}`;
 }
 
 /** Edits a preset: its name and which translations it inserts. */

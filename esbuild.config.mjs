@@ -10,6 +10,8 @@ const ctx = await esbuild.context({
 	external: ["obsidian", "electron", "@codemirror/*", "@lezer/*", ...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
 	format: "cjs",
 	target: "es2018",
+	// Turn import("child_process") into a lazy require() — Obsidian loads plugins as CommonJS.
+	supported: { "dynamic-import": false },
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,

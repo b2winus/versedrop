@@ -1,5 +1,5 @@
 import { Editor, Notice, Plugin } from "obsidian";
-import { AccordanceBridge, CALLBACK_ACTION } from "./accordance";
+import { AccordanceBridge } from "./accordance";
 import { formatPassages, Passage } from "./format";
 import { removeCommand } from "./hotkeys";
 import { t } from "./i18n";
@@ -16,10 +16,8 @@ export default class VersedropPlugin extends Plugin {
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		this.accordance = new AccordanceBridge(() => this.settings.accordanceShortcut);
+		this.accordance = new AccordanceBridge();
 		this.source = new BibleSource(this.app, () => this.settings.esvApiKey, this.accordance);
-		// The Accordance Shortcut sends its result back to obsidian://versedrop-accordance
-		this.registerObsidianProtocolHandler(CALLBACK_ACTION, (params) => this.accordance.handleCallback(params));
 
 		this.addCommand({
 			id: "insert-passage",
