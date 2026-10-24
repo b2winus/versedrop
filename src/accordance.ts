@@ -50,6 +50,8 @@ export function accordanceAvailable(): boolean {
 	return Platform.isDesktopApp && Platform.isMacOS;
 }
 
+const RECORD_SEPARATOR = String.fromCharCode(30);
+
 export interface RawVerse {
 	verse: number;
 	text: string;
@@ -59,7 +61,9 @@ export interface RawVerse {
 export function parseAccordanceOutput(out: string): { verses: RawVerse[]; errors: number } {
 	const verses: RawVerse[] = [];
 	let errors = 0;
-	for (const rec of out.split(/\r?\n(?=\s*\d+\t)|\u001e/)) {
+	// Records are separated by a newline before "<number><TAB>", or by the ASCII record separator.
+	const records = out.split(RECORD_SEPARATOR).flatMap((part) => part.split(/\r?\n(?=\s*\d+\t)/));
+	for (const rec of records) {
 		const tab = rec.indexOf("\t");
 		if (tab < 0) continue;
 		const verse = parseInt(rec.slice(0, tab).trim(), 10);

@@ -210,6 +210,10 @@ If you own Bible modules in [Accordance](https://www.accordancebible.com), Verse
 **Good to know:**
 
 - While fetching, the Shortcuts app appears for a moment and then returns to Obsidian.
+- **Greek and Hebrew modules:** a Hebrew module such as `BHS-W4` holds only the Old Testament, and a Greek NT module such as `NA28-T` only the New. In the translation editor, set **Coverage**:
+  - **Old Testament only** / **New Testament only** — books outside it show as *not in this translation* instead of an Accordance error.
+  - **Different modules for OT and NT** — enter both (e.g. `BHS-W4` and `NA28-T`) to get one "Original" translation that covers the whole Bible.
+  - **Test connection** checks Genesis 1:1 for the OT and John 3:16 for the NT. If *Whole Bible* is selected and only one testament works, coverage is set to that testament automatically.
 - If Accordance isn't running, the first request launches it and takes a few seconds. Whole chapters (e.g. `Ps 119`) are fetched verse by verse and take a little longer.
 - Books are sent to Accordance by their English names, so Korean searches like `요 3:16` work with Korean modules too.
 - Well-known translations (개역개정, 공동번역, ESV, NIV, NASB, NLT, CSB, NKJV, NRSV, NA28, BHS …) get their copyright notice automatically; you can type your own in the translation's editor.
