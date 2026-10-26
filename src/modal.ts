@@ -1,7 +1,7 @@
 import { App, Editor, Modal, Notice, setIcon } from "obsidian";
 import type VersedropPlugin from "./main";
 import { formatPassages, Passage, refLabel } from "./format";
-import { t } from "./i18n";
+import { langLabel, t } from "./i18n";
 import { BibleReference, parseReference } from "./reference";
 import { hasBook, isCopyrighted, Lang, LANGS, noticeFor, Translation, Verse } from "./sources";
 
@@ -22,7 +22,7 @@ export class VerseModal extends Modal {
 	private messageEl!: HTMLElement;
 	private resultsEl!: HTMLElement;
 	private insertBtn!: HTMLButtonElement;
-	private langButtons = new Map<Lang | "all", HTMLButtonElement>();
+	private langButtons = new Map<string, HTMLButtonElement>(); // language code or "all"
 	private available: Lang[] = [];
 	private ref: BibleReference | null = null;
 	private cards: Card[] = [];
@@ -54,12 +54,16 @@ export class VerseModal extends Modal {
 		searchBtn.addEventListener("click", () => this.search());
 
 		// Language chips — only languages that have translations in "My translations"
-		this.available = LANGS.filter((l) => this.plugin.allTranslations().some((tr) => tr.lang === l));
+		const mine = this.plugin.allTranslations();
+		const present = new Set(mine.map((tr) => tr.lang));
+		// Known languages first in their usual order, then languages added from HelloAO.
+		this.available = [...LANGS.filter((l) => present.has(l)), ...[...present].filter((l) => !LANGS.includes(l)).sort()];
 		if (![...this.langs].some((l) => this.available.includes(l)) && this.available.length) this.langs = new Set([this.available[0]]);
 		if (this.available.length > 1) {
 			const langRow = contentEl.createDiv({ cls: "versedrop-langs" });
 			for (const l of this.available) {
-				const b = langRow.createEl("button", { text: t.langName[l], cls: "versedrop-lang" });
+				const label = langLabel(l, mine.find((tr) => tr.lang === l)?.langLabel);
+				const b = langRow.createEl("button", { text: label, cls: "versedrop-lang" });
 				b.addEventListener("click", () => this.toggleLang(l));
 				this.langButtons.set(l, b);
 			}
@@ -164,7 +168,7 @@ export class VerseModal extends Modal {
 			this.updateInsertState();
 			return;
 		}
-		this.showMessage([...new Set(list.map((tr) => refLabel(ref, tr.lang, "full", tr.script)))].join(" · "), false);
+		this.showMessage([...new Set(list.map((tr) => refLabel(ref, tr.lang, "full", tr.script, tr.bookNames)))].join(" · "), false);
 
 		const picked = this.picked;
 		for (const tr of list) {
@@ -176,7 +180,7 @@ export class VerseModal extends Modal {
 			if (tr.abbr && tr.abbr !== tr.name) head.createSpan({ text: tr.abbr, cls: "versedrop-card-abbr" });
 			const body = cardEl.createDiv({ cls: "versedrop-card-body", text: t.loading });
 			body.setAttr("lang", tr.lang);
-			body.setAttr("dir", tr.lang === "he" ? "rtl" : "auto");
+			body.setAttr("dir", tr.dir ?? (tr.lang === "he" ? "rtl" : "auto"));
 
 			const card: Card = { translation: tr, checkbox, verses: null };
 			this.cards.push(card);

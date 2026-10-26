@@ -136,3 +136,51 @@
 .versedrop-chips { display: flex; flex-wrap: wrap; gap: var(--size-4-1); padding-left: var(--size-4-1); }
 .versedrop-chip { font-size: var(--font-ui-smaller); padding: 2px 10px; height: auto; box-shadow: none; opacity: 0.6; }
 .versedrop-chip.is-active { opacity: 1; background: var(--interactive-accent); color: var(--text-on-accent); }
+
+/* HelloAO translation browser */
+.versedrop-helloao {
+	width: min(720px, 94vw);
+}
+
+.versedrop-helloao-intro {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-top: 0;
+}
+
+.versedrop-helloao-search {
+	width: 100%;
+	margin: var(--size-4-2) 0;
+}
+
+.versedrop-helloao-list {
+	max-height: 55vh;
+	overflow-y: auto;
+}
+
+.versedrop-helloao-row {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-3);
+	padding: var(--size-4-2) 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.versedrop-helloao-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.versedrop-helloao-name {
+	font-weight: var(--font-semibold);
+}
+
+.versedrop-helloao-meta,
+.versedrop-helloao-license {
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+
+.versedrop-helloao-license {
+	color: var(--text-faint);
+}

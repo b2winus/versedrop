@@ -1,13 +1,23 @@
-import { App, normalizePath, requestUrl, TFile } from "obsidian";
+import { App, normalizePath, TFile } from "obsidian";
 import { BookInfo, findBook } from "./books";
+import { fetchBollsChapter } from "./adapters/bolls";
+import { fetchNetChapter } from "./adapters/net";
+import { EsvClient } from "./adapters/esv";
+import { fetchHelloAoChapter, findMirror } from "./adapters/helloao";
+import { cleanText, Verse } from "./text";
 import { AccordanceBridge } from "./accordance";
 import { knownCitation } from "./citations";
 import { t } from "./i18n";
 import { BibleReference, inRanges } from "./reference";
 
-export type Lang = "ko" | "en" | "zh" | "ja" | "grc" | "he";
-export const LANGS: Lang[] = ["ko", "en", "zh", "ja", "grc", "he"];
-export type SourceKind = "bolls" | "file" | "accordance" | "net" | "esv";
+/**
+ * Language code of a translation: ko, en, zh, ja, grc, he, de, es … (two letters where one exists),
+ * or the ISO 639-3 code of a language added from HelloAO.
+ */
+export type Lang = string;
+/** Languages in the order they are listed; other languages follow alphabetically. */
+export const LANGS: Lang[] = ["ko", "en", "zh", "ja", "grc", "he", "de", "es", "fr", "pt", "ru", "it", "nl", "la"];
+export type SourceKind = "bolls" | "file" | "accordance" | "net" | "esv" | "helloao";
 
 export interface Translation {
 	id: string;
@@ -44,12 +54,15 @@ export interface Translation {
 	testament?: "OT" | "NT";
 	/** Chinese script for book names */
 	script?: "simplified" | "traditional";
+	/** Book names in the translation's own language, keyed by USFM code (HelloAO translations) */
+	bookNames?: Record<string, string>;
+	/** Language name to show when Versedrop has none of its own (e.g. "Kiswahili") */
+	langLabel?: string;
+	/** Writing direction (HelloAO translations); Hebrew defaults to right-to-left */
+	dir?: "ltr" | "rtl";
 }
 
-export interface Verse {
-	verse: number;
-	text: string;
-}
+export type { Verse } from "./text";
 
 export const BUILT_IN_TRANSLATIONS: Translation[] = [
 	// Korean
@@ -144,27 +157,6 @@ export function isCopyrighted(tr: Translation): boolean {
 	return !!noticeFor(tr);
 }
 
-const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
-
-/** Strips Strong's numbers, footnotes, section headings and HTML from verse text. */
-export function cleanText(raw: string): string {
-	return raw
-		.replace(/<S>[^<]*<\/S>/gi, "")
-		.replace(/<sup>[\s\S]*?<\/sup>/gi, "")
-		.replace(/<br\s*\/?>/gi, " ")
-		.replace(/<[^>]*>/g, "")
-		.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e: string) => {
-			if (e[0] === "#") {
-				const code = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
-				return Number.isFinite(code) ? String.fromCodePoint(code) : m;
-			}
-			return ENTITIES[e.toLowerCase()] ?? m;
-		})
-		.replace(/\s+/g, " ")
-		.replace(/\s+([,.;:!?])/g, "$1")
-		.trim();
-}
-
 type ChapterMap = Map<string, Verse[]>; // key: `${book}:${chapter}`
 
 /** Builds a chapter map from any of the supported local JSON layouts. */
@@ -209,54 +201,30 @@ export function indexLocalBible(data: unknown): ChapterMap {
 	return map;
 }
 
-/** English book name as Accordance / NET / ESV expect it. */
-export function apiBookName(book: BookInfo): string {
-	return book.num === 22 ? "Song of Solomon" : book.en;
-}
-
-/** Parses ESV API plain text ("[16] For God so loved … [17] For God did not …") into verses. */
-export function parseEsvText(passages: string[]): Verse[] {
-	const out: Verse[] = [];
-	for (const p of passages) {
-		const parts = p.split(/\[(\d+)\]/);
-		for (let i = 1; i < parts.length; i += 2) {
-			const verse = parseInt(parts[i], 10);
-			const text = cleanText(parts[i + 1] ?? "").replace(/\s*\(ESV\)\s*$/, "");
-			if (verse && text) out.push({ verse, text });
-		}
-	}
-	return out;
-}
-
-/** Parses the NET Bible API JSON ([{ bookname, chapter, verse, text }]) for one chapter. */
-export function parseNetJson(rows: unknown, chapter: number): Verse[] {
-	if (!Array.isArray(rows)) return [];
-	return (rows as Record<string, unknown>[])
-		.filter((r) => parseInt(String(r.chapter), 10) === chapter)
-		.map((r) => ({ verse: parseInt(String(r.verse), 10), text: cleanText(String(r.text ?? "")) }))
-		.filter((v) => v.verse && v.text);
-}
-
-/** Crossway allows at most 500 ESV verses to be stored locally. */
-const ESV_CACHE_LIMIT = 500;
+export { apiBookName } from "./books";
+export { parseEsvText } from "./adapters/esv";
+export { parseNetJson } from "./adapters/net";
+export { cleanText } from "./text";
 
 export class BibleSource {
 	private chapterCache = new Map<string, Verse[]>();
 	private fileCache = new Map<string, ChapterMap>();
-	private esvCache = new Map<string, Verse[]>();
-	private esvCached = 0;
+	private esv: EsvClient;
+	/** HelloAO id that mirrors a built-in translation, or null if there is none */
+	private mirrors = new Map<string, string | null>();
 
 	constructor(
 		private app: App,
 		private esvKey: () => string,
 		private accordance: AccordanceBridge,
-	) {}
+	) {
+		this.esv = new EsvClient(esvKey);
+	}
 
 	clearCache(): void {
 		this.chapterCache.clear();
 		this.fileCache.clear();
-		this.esvCache.clear();
-		this.esvCached = 0;
+		this.esv.clear();
 	}
 
 	/** Verses of the reference in this translation (empty if the passage doesn't exist there). */
@@ -264,7 +232,7 @@ export class BibleSource {
 		if (!hasBook(tr, ref.book.num)) return [];
 		let verses: Verse[];
 		if (tr.source === "accordance") verses = await this.fromAccordance(tr, ref);
-		else if (tr.source === "esv") verses = await this.fromEsv(ref);
+		else if (tr.source === "esv") verses = await this.esv.fetch(ref);
 		else verses = (await this.getChapter(tr, ref.book, ref.chapter)).filter((v) => inRanges(v.verse, ref.ranges));
 		// Some Hebrew sources mark morpheme breaks with "/" — remove them for reading.
 		if (tr.lang === "he") verses = verses.map((v) => ({ ...v, text: v.text.replace(/\//g, "") }));
@@ -277,80 +245,44 @@ export class BibleSource {
 		if (hit) return hit;
 
 		let verses: Verse[];
-		if (tr.source === "file") verses = await this.fromFile(tr, book.num, chapter);
-		else if (tr.source === "net") verses = await this.fromNet(book, chapter);
-		else verses = await this.fromBolls(tr, book.num, chapter);
+		try {
+			verses = await this.fetchChapter(tr, book, chapter);
+		} catch (err) {
+			// bolls.life down? Built-in public-domain texts can come from HelloAO instead.
+			const mirror = await this.mirrorFor(tr);
+			if (!mirror) throw err;
+			console.warn(`[Versedrop] ${tr.id}: bolls.life failed, using HelloAO ${mirror}`, err);
+			verses = await fetchHelloAoChapter(mirror, book, chapter);
+		}
 		if (verses.length) this.chapterCache.set(key, verses);
 		return verses;
 	}
 
-	private async fromBolls(tr: Translation, book: number, chapter: number): Promise<Verse[]> {
-		if (!tr.code) throw new Error(t.errNoCode);
-		const url = `https://bolls.life/get-text/${encodeURIComponent(tr.code)}/${book}/${chapter}/`;
-		const res = await requestUrl({ url, throw: false });
-		if (res.status !== 200) throw new Error(t.errHttp("bolls.life", res.status));
-		const rows = res.json as { verse: number; text: string }[];
-		if (!Array.isArray(rows)) throw new Error(t.errResponse("bolls.life"));
-		return rows.map((r) => ({ verse: r.verse, text: cleanText(r.text ?? "") }));
+	private fetchChapter(tr: Translation, book: BookInfo, chapter: number): Promise<Verse[]> {
+		switch (tr.source) {
+			case "file":
+				return this.fromFile(tr, book.num, chapter);
+			case "net":
+				return fetchNetChapter(book, chapter);
+			case "helloao":
+				return fetchHelloAoChapter(tr.code ?? "", book, chapter);
+			default:
+				return fetchBollsChapter(tr.code ?? "", book.num, chapter);
+		}
 	}
 
-	private async fromNet(book: BookInfo, chapter: number): Promise<Verse[]> {
-		const passage = `${apiBookName(book)} ${chapter}`;
-		const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=json&formatting=plain`;
-		const res = await requestUrl({ url, throw: false });
-		if (res.status !== 200) throw new Error(t.errHttp("NET Bible", res.status));
-		let rows: unknown;
+	private async mirrorFor(tr: Translation): Promise<string | null> {
+		if (tr.source !== "bolls" || !tr.builtIn || tr.copyrighted) return null;
+		const known = this.mirrors.get(tr.id);
+		if (known !== undefined) return known;
+		let id: string | null = null;
 		try {
-			rows = res.json;
+			id = await findMirror(tr);
 		} catch {
-			throw new Error(t.errResponse("NET Bible"));
+			id = null;
 		}
-		return parseNetJson(rows, chapter);
-	}
-
-	private async fromEsv(ref: BibleReference): Promise<Verse[]> {
-		const key = this.esvKey().trim();
-		if (!key) throw new Error(t.esvNoKey);
-		const book = apiBookName(ref.book);
-		const q = ref.ranges.length
-			? ref.ranges.map((r) => `${book} ${ref.chapter}:${r.start}-${r.end}`).join("; ")
-			: `${book} ${ref.chapter}`;
-		const cached = this.esvCache.get(q);
-		if (cached) return cached;
-
-		const params = new URLSearchParams({
-			q,
-			"include-passage-references": "false",
-			"include-verse-numbers": "true",
-			"include-first-verse-numbers": "true",
-			"include-footnotes": "false",
-			"include-headings": "false",
-			"include-short-copyright": "false",
-			"include-copyright": "false",
-			"include-selahs": "true",
-			"indent-paragraphs": "0",
-			"indent-poetry": "false",
-		});
-		const res = await requestUrl({
-			url: `https://api.esv.org/v3/passage/text/?${params.toString()}`,
-			headers: { Authorization: `Token ${key}` },
-			throw: false,
-		});
-		if (res.status === 401 || res.status === 403) throw new Error(t.esvBadKey);
-		if (res.status === 429) throw new Error(t.esvThrottled);
-		if (res.status !== 200) throw new Error(t.errHttp("ESV API", res.status));
-		const data = res.json as { passages?: string[] };
-		const verses = parseEsvText(data.passages ?? []).filter((v) => inRanges(v.verse, ref.ranges));
-
-		if (this.esvCached + verses.length > ESV_CACHE_LIMIT) {
-			this.esvCache.clear();
-			this.esvCached = 0;
-		}
-		if (verses.length) {
-			this.esvCache.set(q, verses);
-			this.esvCached += verses.length;
-		}
-		return verses;
+		this.mirrors.set(tr.id, id);
+		return id;
 	}
 
 	private async fromAccordance(tr: Translation, ref: BibleReference): Promise<Verse[]> {

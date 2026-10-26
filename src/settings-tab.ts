@@ -17,11 +17,12 @@ import {
 import type VersedropPlugin from "./main";
 import { accordanceAvailable } from "./accordance";
 import { knownCitation } from "./citations";
-import { HelpTopic, t } from "./i18n";
+import { HelpTopic, langLabel, t } from "./i18n";
+import { HelloAoBrowser } from "./helloao-browser";
 import { hotkeysFor, openHotkeySettings } from "./hotkeys";
 import { parseReference } from "./reference";
-import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./settings";
-import { BUILT_IN_TRANSLATIONS, Lang, LANGS, Translation } from "./sources";
+import { DEFAULT_SETTINGS, Preset, sortByOrder } from "./settings";
+import { BUILT_IN_TRANSLATIONS, LANGS, Translation } from "./sources";
 
 const SUPPORT_URL = "https://buymeacoffee.com/4h9fg59wsgd";
 /** Vault folder that imported Bible JSON files are copied into. */
@@ -306,9 +307,16 @@ export class VersedropSettingTab extends PluginSettingTab {
 
 	private translationItem(tr: Translation): SettingDefinition {
 		const s = this.plugin.settings;
-		const lang = t.langName[tr.lang];
+		const lang = langLabel(tr.lang, tr.langLabel);
 		const custom = !tr.builtIn;
-		const kind = tr.source === "bolls" ? `bolls.life ${tr.code ?? ""}` : tr.source === "file" ? `JSON ${tr.path ?? ""}` : `Accordance ${tr.module ?? ""}`;
+		const kind =
+			tr.source === "bolls"
+				? `bolls.life ${tr.code ?? ""}`
+				: tr.source === "helloao"
+					? `HelloAO ${tr.code ?? ""}`
+					: tr.source === "file"
+						? `JSON ${tr.path ?? ""}`
+						: `Accordance ${tr.module ?? ""}`;
 		const name = custom ? tr.name || t.sUnnamed : `${tr.name}${tr.abbr !== tr.name ? ` (${tr.abbr})` : ""}`;
 		const desc = custom ? `${lang} · ${kind.trim()}` : `${lang} · ${tr.note ?? ""}`;
 
@@ -378,6 +386,12 @@ export class VersedropSettingTab extends PluginSettingTab {
 			menu.addSeparator();
 		}
 		menu.addItem((i) => i.setTitle(t.sOwnGroup).setIsLabel(true));
+		menu.addItem((i) =>
+			i
+				.setTitle(t.sAddHelloAo)
+				.setIcon("languages")
+				.onClick(() => new HelloAoBrowser(this.app, this.plugin, () => void this.saveAndRebuild()).open()),
+		);
 		menu.addItem((i) => {
 			i.setTitle(t.sAddAccordance)
 				.setIcon("book-open")
@@ -469,7 +483,7 @@ export class TranslationModal extends Modal {
 		const { contentEl } = this;
 		const tr = this.tr;
 		const save = () => void this.plugin.saveSettings();
-		const kind = tr.source === "bolls" ? t.sKindBolls : tr.source === "file" ? t.sKindFile : t.sKindAccordance;
+		const kind = tr.source === "bolls" ? t.sKindBolls : tr.source === "helloao" ? t.sKindHelloAo : tr.source === "file" ? t.sKindFile : t.sKindAccordance;
 		this.titleEl.setText(`${t.sEdit} · ${kind}`);
 
 		new Setting(contentEl).setName(t.sName).addText((x) =>
@@ -478,18 +492,20 @@ export class TranslationModal extends Modal {
 				.setValue(tr.name)
 				.onChange((v) => {
 					tr.name = v.trim();
-					tr.abbr = v.trim();
+					// HelloAO translations keep their own short name (e.g. LUT1912) for headers.
+					if (tr.source !== "helloao" || !tr.abbr) tr.abbr = v.trim();
 					save();
 				}),
 		);
 
-		const label = tr.source === "bolls" ? t.sCode : tr.source === "file" ? t.sPath : t.sModule;
-		const current = (tr.source === "bolls" ? tr.code : tr.source === "file" ? tr.path : tr.module) ?? "";
+		const usesCode = tr.source === "bolls" || tr.source === "helloao";
+		const label = tr.source === "bolls" ? t.sCode : tr.source === "helloao" ? "HelloAO ID" : tr.source === "file" ? t.sPath : t.sModule;
+		const current = (usesCode ? tr.code : tr.source === "file" ? tr.path : tr.module) ?? "";
 		const src = new Setting(contentEl).setName(label).addText((x) => {
 			this.pathInput = x.inputEl;
 			x.setValue(current).onChange((v) => {
 				const val = v.trim();
-				if (tr.source === "bolls") tr.code = val;
+				if (usesCode) tr.code = val;
 				else if (tr.source === "file") tr.path = val;
 				else tr.module = val;
 				this.plugin.source.clearCache();
@@ -500,6 +516,13 @@ export class TranslationModal extends Modal {
 				new JsonFileSuggest(this.app, x.inputEl).onSelect((file) => void this.useFile(file.path));
 			}
 		});
+		if (tr.source === "helloao") {
+			src.setDesc(t.haInfo(tr.code ?? ""));
+			if (tr.link) {
+				const link = tr.link;
+				src.addButton((b) => b.setButtonText(t.haOpenLicense).onClick(() => window.open(link)));
+			}
+		}
 		if (tr.source === "file") {
 			src.setDesc(t.sPathDesc);
 			src.addExtraButton((b) =>
@@ -543,10 +566,10 @@ export class TranslationModal extends Modal {
 
 		new Setting(contentEl).setName(t.sLang).addDropdown((d) =>
 			d
-				.addOptions(Object.fromEntries(LANGS.map((l) => [l, t.langName[l]])))
+				.addOptions(Object.fromEntries([...LANGS, ...(LANGS.includes(tr.lang) ? [] : [tr.lang])].map((l) => [l, langLabel(l, tr.langLabel)])))
 				.setValue(tr.lang)
 				.onChange((v) => {
-					tr.lang = v as Lang;
+					tr.lang = v;
 					save();
 				}),
 		);

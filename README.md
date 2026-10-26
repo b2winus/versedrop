@@ -1,6 +1,6 @@
 # Versedrop
 
-Search a Bible reference and drop the passage into your note — in Korean, English, or both.
+Search a Bible reference and drop the passage into your note — in Korean, English, and 1,000+ other languages.
 
 성경 구절을 검색해서 노트에 바로 넣어 주는 Obsidian 플러그인입니다. 한국어·영어 역본을 골라서, 또는 함께 넣을 수 있어요.
 
@@ -48,7 +48,9 @@ Search a Bible reference and drop the passage into your note — in Korean, Engl
 - **Accordance (Mac):** pull text from Bible modules you own in Accordance — 개역개정, NIV, NASB and more
 - **Copyright notices added automatically** for copyrighted translations, plus a warning for long quotations
 - **Logos & Accordance links:** each passage can link straight to the same passage in your Bible software
-- Add any translation from bolls.life (Chinese, German, Spanish …) or from a JSON file in your vault
+- **1,000+ languages from HelloAO:** browse free translations by language (German, Spanish, French, Portuguese …) and add them with one click — their own book names and copyright notices come along, and you can type references with those book names (`Johannes 3:16`, `Juan 3:16`)
+- **Backup source:** if bolls.life is unreachable, built-in public-domain texts (KJV, WEB, BSB …) are fetched from HelloAO instead
+- Add any translation from bolls.life by code, or from a JSON file in your vault
 - Callout, blockquote or plain text output, with options for verse numbers, line breaks and bilingual grouping
 - Interface and built-in help in Korean and English, following Obsidian's language setting
 
@@ -234,7 +236,19 @@ Logos offers no official way for other apps to read Bible text, and its resource
 
 ## Adding other translations
 
-The *Add your own* group at the bottom of the **Add a translation** (+) menu offers three kinds:
+### From HelloAO (1,000+ languages)
+
+**Add a translation** (+) → **Find a translation on HelloAO…** opens a browser for the [Free Use Bible API](https://bible.helloao.org) by AO Lab — freely licensed translations in more than 1,000 languages, no key needed.
+
+1. Pick a language chip (German, Spanish, French …) or search by name, language or abbreviation (e.g. `Luther`, `Reina`, `Deutsch`).
+2. Click **Add**. Versedrop stores the translation's own book names (used in headers and accepted when you type references), its writing direction, and its licence notice, which is added under quotations.
+3. A chip for the new language appears in the search window.
+
+Old- or New-Testament-only translations are detected automatically. You can rename a translation or edit its citation with the ✏️ button.
+
+### Your own sources
+
+The *Add your own* group at the bottom of the **Add a translation** (+) menu also offers:
 
 **bolls.life translation** — enter a display name and the bolls.life code. Useful for further languages:
 
@@ -332,7 +346,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ## Network and system access
 
-- **Network:** text is fetched from [bolls.life](https://bolls.life), the [NET Bible API](https://labs.bible.org) and — only if you add your key — the [ESV API](https://api.esv.org). Only the translation, book and chapter (or passage) are sent; your ESV key is sent only to api.esv.org.
+- **Network:** text is fetched from [bolls.life](https://bolls.life), the [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org) (for translations you add from it, and as a backup for built-in public-domain texts when bolls.life is unreachable) and — only if you add your key — the [ESV API](https://api.esv.org). Only the translation, book and chapter (or passage) are sent; your ESV key is sent only to api.esv.org. Opening the HelloAO browser downloads its list of translations.
 - **Local only:** JSON files and Accordance modules are read on your device; nothing is sent over the network.
 - **Accordance (macOS):** runs `osascript` through Node's `execFile` (no shell) with a fixed AppleScript that asks Accordance for verse text; the module and reference are passed as arguments. It is loaded only when you use an Accordance translation on a Mac, and macOS asks for your permission the first time.
 - Fetched passages are cached in memory until Obsidian restarts.
@@ -371,7 +385,9 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - **Accordance (Mac):** Accordance에서 구입한 역본(개역개정, NIV, NASB 등)의 본문을 바로 가져오기
 - 저작권 역본에 **출처 문구 자동 표기**, 많은 분량을 인용하면 경고
 - **Logos·Accordance 링크:** 구절마다 내 성경 프로그램에서 바로 열리는 링크 추가
-- bolls.life의 다른 언어 역본(중국어, 독일어, 스페인어 등)이나 볼트 안 JSON 파일로 역본 추가
+- **HelloAO에서 1,000개 이상 언어:** 독일어·스페인어·프랑스어·포르투갈어 등 무료 역본을 언어별로 찾아 클릭 한 번에 추가. 그 역본의 책 이름과 저작권 안내가 함께 들어오고, 그 책 이름으로도 검색돼요(`Johannes 3:16`, `Juan 3:16`)
+- **예비 소스:** bolls.life에 접속이 안 되면 기본 공개 역본(KJV, WEB, BSB 등)을 HelloAO에서 대신 가져와요
+- bolls.life 역본 코드나 볼트 안 JSON 파일로 역본 추가
 - 콜아웃·인용문·일반 텍스트 형식, 절 번호, 줄바꿈, 한영 병기 묶기 옵션
 - Obsidian 언어 설정에 따라 한국어/영어 화면과 도움말 제공
 
@@ -557,7 +573,19 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 ## 다른 역본 추가하기
 
-**역본 추가**(+) 메뉴 맨 아래 *직접 추가* 묶음에서 세 가지 방법을 쓸 수 있어요.
+### HelloAO에서 찾기 (1,000개 이상 언어)
+
+**역본 추가**(+) → **HelloAO에서 역본 찾기…**를 누르면 AO Lab의 [무료 성경 API](https://bible.helloao.org) 역본 목록이 열려요. 1,000개가 넘는 언어의 자유 이용 역본이 있고, 키가 필요 없어요.
+
+1. 독일어·스페인어·프랑스어 같은 언어 버튼을 누르거나, 이름·언어·약어로 검색하세요(예: `Luther`, `Reina`, `Deutsch`).
+2. **추가**를 누르면 끝이에요. 그 역본의 책 이름(제목에 쓰이고, 구절을 입력할 때도 알아들어요), 글쓰기 방향, 저작권 안내가 함께 저장되고, 저작권 안내는 인용 아래에 붙어요.
+3. 검색 창에 새 언어 버튼이 생겨요.
+
+구약만·신약만 있는 역본은 자동으로 알아봐요. ✏️ 버튼으로 이름이나 출처 문구를 바꿀 수 있어요.
+
+### 직접 추가
+
+**역본 추가**(+) 메뉴 맨 아래 *직접 추가* 묶음에서는 이런 방법도 쓸 수 있어요.
 
 **bolls.life 역본** — 표시할 이름과 bolls.life 코드를 입력합니다. 다른 언어 성경을 쓸 때 유용해요.
 
@@ -664,7 +692,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 ## 네트워크와 시스템 접근
 
-- **네트워크:** 본문은 [bolls.life](https://bolls.life), [NET Bible API](https://labs.bible.org), 그리고 키를 넣은 경우에만 [ESV API](https://api.esv.org)에서 가져와요. 보내는 정보는 역본과 책·장(또는 구절)뿐이고, ESV 키는 api.esv.org에만 전송돼요.
+- **네트워크:** 본문은 [bolls.life](https://bolls.life), [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org)(HelloAO에서 추가한 역본, 그리고 bolls.life에 접속이 안 될 때 기본 공개 역본의 예비 소스), 그리고 키를 넣은 경우에만 [ESV API](https://api.esv.org)에서 가져와요. 보내는 정보는 역본과 책·장(또는 구절)뿐이고, ESV 키는 api.esv.org에만 전송돼요. HelloAO 역본 찾기 창을 열면 역본 목록을 내려받아요.
 - **내 기기 안에서만:** JSON 파일과 Accordance 모듈은 내 기기에서 읽고, 인터넷으로 보내지 않아요.
 - **Accordance (macOS):** Node의 `execFile`로 `osascript`를 실행해(셸 없이) 고정된 AppleScript로 Accordance에 본문을 요청해요. 모듈과 구절은 인자로만 넘겨요. Mac에서 Accordance 역본을 쓸 때만 불러오고, 처음 한 번 macOS가 권한을 물어봅니다.
 - 가져온 본문은 Obsidian을 다시 시작할 때까지 메모리에 임시 저장돼요.

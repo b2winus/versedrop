@@ -4,6 +4,8 @@
 
 export interface BookInfo {
 	num: number;
+	/** USFM book code (GEN, EXO … REV), used by HelloAO and other APIs */
+	usfm: string;
 	ko: string;
 	koShort: string;
 	en: string;
@@ -100,8 +102,12 @@ const RAW: [string, string, string, string, string][] = [
 	["요한계시록", "계", "Revelation", "Rev", "re,rev,rv,revelations,계시록"],
 ];
 
+// USFM book codes in canonical order
+const USFM = "GEN EXO LEV NUM DEU JOS JDG RUT 1SA 2SA 1KI 2KI 1CH 2CH EZR NEH EST JOB PSA PRO ECC SNG ISA JER LAM EZK DAN HOS JOL AMO OBA JON MIC NAM HAB ZEP HAG ZEC MAL MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL 1TH 2TH 1TI 2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV".split(" ");
+
 export const BOOKS: BookInfo[] = RAW.map(([ko, koShort, en, enShort, aliases], i) => ({
 	num: i + 1,
+	usfm: USFM[i],
 	ko,
 	koShort,
 	en,
@@ -127,10 +133,43 @@ for (const b of BOOKS) {
 	}
 }
 
+/**
+ * Lets references be typed with the book names of added translations
+ * (e.g. "Johannes 3:16", "Juan 3:16"). Built-in names always win.
+ */
+const customKeys = new Set<string>();
+
+export function registerBookNames(names: Record<string, string> | undefined): void {
+	if (!names) return;
+	for (const [usfm, name] of Object.entries(names)) {
+		const book = bookByUsfm(usfm);
+		const k = normalizeBookKey(name);
+		if (book && k && !LOOKUP.has(k)) {
+			LOOKUP.set(k, book);
+			customKeys.add(k);
+		}
+	}
+}
+
+/** Forgets book names added by registerBookNames (e.g. after a translation is removed). */
+export function clearCustomBookNames(): void {
+	for (const k of customKeys) LOOKUP.delete(k);
+	customKeys.clear();
+}
+
 export function findBook(name: string): BookInfo | undefined {
 	return LOOKUP.get(normalizeBookKey(name));
 }
 
+export function bookByUsfm(code: string): BookInfo | undefined {
+	return BOOKS.find((b) => b.usfm === code.toUpperCase());
+}
+
 export function getBook(num: number): BookInfo | undefined {
 	return BOOKS[num - 1];
+}
+
+/** English book name as Accordance / NET / ESV expect it. */
+export function apiBookName(book: BookInfo): string {
+	return book.num === 22 ? "Song of Solomon" : book.en;
 }

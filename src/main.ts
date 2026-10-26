@@ -1,5 +1,6 @@
 import { Editor, Notice, Plugin } from "obsidian";
 import { AccordanceBridge } from "./accordance";
+import { clearCustomBookNames, registerBookNames } from "./books";
 import { formatPassages, Passage } from "./format";
 import { removeCommand } from "./hotkeys";
 import { t } from "./i18n";
@@ -149,7 +150,7 @@ export default class VersedropPlugin extends Plugin {
 		this.settings.presets = this.settings.presets ?? [];
 		// 0.3.x stored a single "language" (ko / en / both)
 		const legacy = (saved as { language?: string }).language;
-		if (!saved.languages && legacy) this.settings.languages = legacy === "both" ? ["ko", "en"] : [legacy as "ko" | "en"];
+		if (!saved.languages && legacy) this.settings.languages = legacy === "both" ? ["ko", "en"] : [legacy];
 		// Turn on built-in translations added in a newer version (only those that are on by default).
 		const seen = new Set(saved.seenBuiltIns ?? (saved.enabled ? ["KRV", "RNKSV", "KJV", "WEB", "BSB", "ASV", "YLT"] : []));
 		for (const tr of BUILT_IN_TRANSLATIONS) {
@@ -160,9 +161,24 @@ export default class VersedropPlugin extends Plugin {
 		for (const id of [...this.settings.enabled, ...this.settings.custom.map((c) => c.id)]) {
 			if (!this.settings.order.includes(id)) this.settings.order.push(id);
 		}
+		// 0.7.0 left HelloAO translations without a licence notice uncited; give them name + licence link.
+		if (!this.settings.helloAoCitationsFilled) {
+			for (const tr of this.settings.custom) {
+				if (tr.source === "helloao" && !tr.citation?.trim()) tr.citation = tr.link ? `${tr.name} — ${t.haLicense}: ${tr.link}` : tr.name;
+			}
+			this.settings.helloAoCitationsFilled = true;
+		}
+		this.registerCustomBookNames();
 	}
 
 	async saveSettings(): Promise<void> {
+		this.registerCustomBookNames();
 		await this.saveData(this.settings);
+	}
+
+	/** Book names of added translations (German, Spanish …) become searchable references. */
+	registerCustomBookNames(): void {
+		clearCustomBookNames();
+		for (const tr of this.settings.custom) registerBookNames(tr.bookNames);
 	}
 }

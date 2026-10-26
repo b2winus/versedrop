@@ -24,6 +24,8 @@ export interface VersedropSettings extends FormatOptions {
 	esvApiKey: string;
 	/** Warn when a copyrighted translation is quoted beyond this many verses at once (0 = never) */
 	quoteWarn: number;
+	/** One-time fix for HelloAO translations added by 0.7.0 without a citation */
+	helloAoCitationsFilled?: boolean;
 	/** Built-in ids known when settings were last saved (to switch on new defaults after updates) */
 	seenBuiltIns?: string[];
 }

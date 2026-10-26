@@ -30,9 +30,14 @@ export interface Passage {
 	verses: Verse[];
 }
 
-/** Book name in the translation's language (Greek and Hebrew texts use English names). */
-export function bookLabel(book: BookInfo, lang: string, style: "full" | "short", script?: string): string {
+/**
+ * Book name in the translation's language. Korean, Chinese and Japanese use Versedrop's tables;
+ * other languages use the translation's own book names when it has them (HelloAO), else English.
+ * Greek and Hebrew texts use English names.
+ */
+export function bookLabel(book: BookInfo, lang: string, style: "full" | "short", script?: string, names?: Record<string, string>): string {
 	const full = style === "full";
+	const own = lang !== "en" && lang !== "grc" && lang !== "he" ? names?.[book.usfm] : undefined;
 	switch (lang) {
 		case "ko":
 			return full ? book.ko : book.koShort;
@@ -41,12 +46,12 @@ export function bookLabel(book: BookInfo, lang: string, style: "full" | "short",
 		case "ja":
 			return full ? book.ja : book.jaShort;
 		default:
-			return full ? book.en : book.enShort;
+			return own ?? (full ? book.en : book.enShort);
 	}
 }
 
-export function refLabel(ref: BibleReference, lang: string, bookName: "full" | "short", script?: string): string {
-	const name = bookLabel(ref.book, lang, bookName, script);
+export function refLabel(ref: BibleReference, lang: string, bookName: "full" | "short", script?: string, names?: Record<string, string>): string {
+	const name = bookLabel(ref.book, lang, bookName, script, names);
 	const cjk = lang === "ko" || lang === "zh" || lang === "ja";
 	const sep = cjk && bookName === "short" ? "" : " ";
 	const verses = ref.ranges.length ? `:${versesLabel(ref.ranges)}` : "";
@@ -54,9 +59,9 @@ export function refLabel(ref: BibleReference, lang: string, bookName: "full" | "
 }
 
 function header(ref: BibleReference, tr: Translation, o: FormatOptions): string {
-	const book = bookLabel(ref.book, tr.lang, o.bookName, tr.script);
+	const book = bookLabel(ref.book, tr.lang, o.bookName, tr.script, tr.bookNames);
 	const vars: Record<string, string> = {
-		ref: refLabel(ref, tr.lang, o.bookName, tr.script),
+		ref: refLabel(ref, tr.lang, o.bookName, tr.script, tr.bookNames),
 		book,
 		chapter: String(ref.chapter),
 		verses: versesLabel(ref.ranges),
@@ -134,7 +139,7 @@ export function formatPassages(ref: BibleReference, passages: Passage[], o: Form
 	}
 
 	// Grouped: one block titled by the reference (in each language used), each translation as a labelled section.
-	const title = [...new Set(usable.map((p) => refLabel(ref, p.translation.lang, o.bookName, p.translation.script)))].join(" · ");
+	const title = [...new Set(usable.map((p) => refLabel(ref, p.translation.lang, o.bookName, p.translation.script, p.translation.bookNames)))].join(" · ");
 	const lines: string[] = [];
 	usable.forEach((p, i) => {
 		if (i > 0) lines.push("");

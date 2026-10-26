@@ -33,7 +33,7 @@ const ko = {
 	langEn: "English",
 	langBoth: "함께",
 	langAll: "전체",
-	langName: { ko: "한국어", en: "영어", zh: "중국어", ja: "일본어", grc: "헬라어", he: "히브리어" } as Record<string, string>,
+	langName: { ko: "한국어", en: "영어", zh: "중국어", ja: "일본어", grc: "헬라어", he: "히브리어", de: "독일어", es: "스페인어", fr: "프랑스어", pt: "포르투갈어", ru: "러시아어", it: "이탈리아어", nl: "네덜란드어", la: "라틴어" } as Record<string, string>,
 	noTranslationsForBook: "선택한 언어에는 이 책이 들어 있는 역본이 없어요. 헬라어 역본은 신약만, 히브리어 WLC는 구약만 있어요.",
 	loading: "불러오는 중…",
 	noVerses: "해당 구절이 이 역본에 없어요.",
@@ -101,6 +101,24 @@ const ko = {
 	sCustomDesc: "기본 제공 외의 역본을 세 가지 방법으로 추가할 수 있어요. 자세한 내용은 맨 아래 도움말을 보세요.",
 	sAddBolls: "bolls.life 역본 코드로 추가…",
 	sAddFile: "JSON 파일로 추가…",
+	sAddHelloAo: "HelloAO에서 역본 찾기… (1,000개 이상 언어)",
+	sKindHelloAo: "HelloAO",
+	haTitle: "HelloAO 역본 찾기",
+	haIntro: "HelloAO 무료 성경 API(bible.helloao.org)에서 자유롭게 쓸 수 있는 역본을 찾아 추가해요. 키가 필요 없어요. 역본마다 저작권 안내가 있으면 인용할 때 함께 붙어요.",
+	haSearch: "역본 이름, 언어 또는 약어로 검색 (예: Luther, Reina, Deutsch)",
+	haLoading: "역본 목록을 불러오는 중…",
+	haFailed: (msg: string) => `역본 목록을 불러오지 못했어요: ${msg}`,
+	haCount: (shown: number, total: number) => (shown < total ? `${total}개 중 ${shown}개 표시 — 검색어를 더 좁혀 보세요.` : `${total}개`),
+	haNone: "찾는 역본이 없어요.",
+	haAdd: "추가",
+	haAdded: "추가됨",
+	haAdding: "추가 중…",
+	haAddedNotice: (name: string) => `'${name}'을(를) 내 역본에 추가했어요.`,
+	haBooks: (n: number) => (n >= 66 ? "신·구약" : n === 27 ? "신약" : n === 39 ? "구약" : `${n}권`),
+	haLicense: "라이선스",
+	haAllLangs: "전체",
+	haInfo: (id: string) => `HelloAO 역본 ${id}. 이름과 출처 문구는 바꿀 수 있어요.`,
+	haOpenLicense: "라이선스 보기",
 	sAddAccordance: "Accordance 모듈로 추가… (Mac)",
 	sAccordanceUnavailable: "이 기기에서는 Accordance 연동을 쓸 수 없어요 (Mac 데스크톱 전용).",
 	sName: "이름",
@@ -254,6 +272,7 @@ const ko = {
 		{
 			title: "다른 언어 역본 추가하기",
 			paras: [
+				"가장 쉬운 방법: '역본 추가'(+) 메뉴의 'HelloAO에서 역본 찾기…'를 누르면 1,000개가 넘는 언어의 무료 역본 목록이 열려요. 독일어·스페인어·프랑스어 같은 언어 버튼을 누르거나 이름으로 검색한 뒤 '추가'를 누르면 끝이에요. 그 역본의 책 이름과 저작권 안내도 함께 들어와요.",
 				"bolls.life에 있는 역본은 '역본 추가'(+) 메뉴의 'bolls.life 역본 코드로 추가…'에서 코드만 넣으면 바로 쓸 수 있어요. 예: LUT(Luther 1912, 독일어), RV1960(Reina-Valera 1960, 스페인어). 전체 목록은 bolls.life/static/bolls/app/views/languages.json 에서 볼 수 있어요. 각 역본의 저작권을 지켜 주세요.",
 			],
 		},
@@ -288,7 +307,7 @@ const en: typeof ko = {
 	langEn: "English",
 	langBoth: "Both",
 	langAll: "All",
-	langName: { ko: "Korean", en: "English", zh: "Chinese", ja: "Japanese", grc: "Greek", he: "Hebrew" },
+	langName: { ko: "Korean", en: "English", zh: "Chinese", ja: "Japanese", grc: "Greek", he: "Hebrew", de: "German", es: "Spanish", fr: "French", pt: "Portuguese", ru: "Russian", it: "Italian", nl: "Dutch", la: "Latin" },
 	noTranslationsForBook: "None of the translations in the chosen languages contain this book. Greek texts are NT only; Hebrew WLC is OT only.",
 	loading: "Loading…",
 	noVerses: "This passage isn't available in this translation.",
@@ -354,6 +373,24 @@ const en: typeof ko = {
 	sCustomDesc: "Add translations beyond the built-in ones in three ways. See Help at the bottom for details.",
 	sAddBolls: "Add by bolls.life code…",
 	sAddFile: "Add from a JSON file…",
+	sAddHelloAo: "Find a translation on HelloAO… (1,000+ languages)",
+	sKindHelloAo: "HelloAO",
+	haTitle: "Find a translation on HelloAO",
+	haIntro: "Add freely licensed translations from the HelloAO Free Use Bible API (bible.helloao.org). No key needed. If a translation has a copyright notice, it is added under quotations.",
+	haSearch: "Search by name, language or abbreviation (e.g. Luther, Reina, Deutsch)",
+	haLoading: "Loading translations…",
+	haFailed: (msg: string) => `Couldn't load the translation list: ${msg}`,
+	haCount: (shown: number, total: number) => (shown < total ? `Showing ${shown} of ${total} — narrow your search.` : `${total}`),
+	haNone: "No matching translations.",
+	haAdd: "Add",
+	haAdded: "Added",
+	haAdding: "Adding…",
+	haAddedNotice: (name: string) => `Added '${name}' to your translations.`,
+	haBooks: (n: number) => (n >= 66 ? "Whole Bible" : n === 27 ? "New Testament" : n === 39 ? "Old Testament" : `${n} books`),
+	haLicense: "Licence",
+	haAllLangs: "All",
+	haInfo: (id: string) => `HelloAO translation ${id}. You can change its name and citation.`,
+	haOpenLicense: "View licence",
 	sAddAccordance: "Add an Accordance module… (Mac)",
 	sAccordanceUnavailable: "Accordance integration isn't available on this device (Mac desktop only).",
 	sName: "Name",
@@ -507,6 +544,7 @@ const en: typeof ko = {
 		{
 			title: "Add translations in other languages",
 			paras: [
+				"Easiest: choose 'Find a translation on HelloAO…' in the 'Add a translation' (+) menu to browse free translations in more than 1,000 languages. Pick a language such as German, Spanish or French, or search by name, and click 'Add'. The translation's own book names and copyright notice come with it.",
 				"Any bolls.life translation can be added by code ('Add by bolls.life code…'). Examples: LUT (Luther 1912, German), RV1960 (Reina-Valera 1960, Spanish). The full list is at bolls.life/static/bolls/app/views/languages.json. Please respect each translation's license.",
 			],
 		},
@@ -522,3 +560,18 @@ function uiLang(): "ko" | "en" {
 }
 
 export const t: typeof ko = uiLang() === "ko" ? ko : en;
+
+/**
+ * Display name of a language code: Versedrop's own name, then the name stored with the translation,
+ * then the browser's name for the code, then the code itself.
+ */
+export function langLabel(code: string, fallback?: string): string {
+	const own = t.langName[code];
+	if (own) return own;
+	if (fallback) return fallback;
+	try {
+		return new Intl.DisplayNames([uiLang()], { type: "language" }).of(code) ?? code;
+	} catch {
+		return code;
+	}
+}
