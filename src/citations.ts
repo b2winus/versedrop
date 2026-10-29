@@ -12,8 +12,10 @@ export interface KnownCitation {
 export const KNOWN_CITATIONS: KnownCitation[] = [
 	// Korean Bible Society
 	{ pattern: /개역개정|nkrv|krv-?nk|^gae$/i, text: "성경전서 개역개정판 © 대한성서공회" },
-	{ pattern: /새번역|rnksv|^nir$/i, text: "성경전서 새번역 © 대한성서공회" },
-	{ pattern: /공동번역|kcb|^kor$/i, text: "공동번역성서 개정판 © 대한성서공회" },
+	{ pattern: /표준\s*새번역|^sae$/i, text: "성경전서 표준새번역 © 대한성서공회" },
+	{ pattern: /새번역|rnksv|^nir$|^saenew$/i, text: "성경전서 새번역 © 대한성서공회" },
+	{ pattern: /공동번역\s*개정|^cognew$/i, text: "공동번역성서 개정판 © 대한성서공회" },
+	{ pattern: /공동번역|kcb|^kor$|^cog$/i, text: "공동번역성서 © 대한성서공회" },
 	{ pattern: /새한글|nkt/i, text: "새한글성경 © 대한성서공회" },
 	{ pattern: /쉬운성경/i, text: "쉬운성경 © 아가페출판사" },
 	{ pattern: /현대인의\s*성경|klb/i, text: "현대인의성경 © 생명의말씀사" },

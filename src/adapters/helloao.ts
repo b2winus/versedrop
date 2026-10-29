@@ -145,7 +145,7 @@ export function helloAoCitation(entry: Pick<HelloAoTranslation, "name" | "englis
 	return url ? `${name} — ${t.haLicense}: ${url}` : name;
 }
 
-const OT = new Set(BOOKS.filter((b) => b.num <= 39).map((b) => b.usfm));
+const OT = new Set(BOOKS.filter((b) => b.num <= 39 || b.deutero).map((b) => b.usfm));
 
 /** Builds a Versedrop translation from a catalog entry, with the translation's own book names. */
 export async function translationFromHelloAo(entry: HelloAoTranslation): Promise<Translation> {
@@ -165,6 +165,7 @@ export async function translationFromHelloAo(entry: HelloAoTranslation): Promise
 		citation: helloAoCitation(entry),
 		link: entry.licenseUrl || entry.website,
 		testament: hasOT && !hasNT ? "OT" : hasNT && !hasOT ? "NT" : undefined,
+		deutero: books.some((b) => BOOKS.some((x) => x.deutero && x.usfm === b.id)) || undefined,
 		bookNames: Object.keys(bookNames).length ? bookNames : undefined,
 		dir: entry.textDirection,
 	};

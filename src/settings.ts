@@ -22,6 +22,8 @@ export interface VersedropSettings extends FormatOptions {
 	order: string[];
 	/** Personal ESV API key (api.esv.org) */
 	esvApiKey: string;
+	/** Vault folder that Bible JSON files imported from the computer are copied into */
+	importFolder: string;
 	/** Warn when a copyrighted translation is quoted beyond this many verses at once (0 = never) */
 	quoteWarn: number;
 	/** One-time fix for HelloAO translations added by 0.7.0 without a citation */
@@ -50,6 +52,7 @@ export const DEFAULT_SETTINGS: VersedropSettings = {
 	citations: "copyrighted",
 	esvApiKey: "",
 	quoteWarn: 50,
+	importFolder: "Versedrop Bibles",
 };
 
 

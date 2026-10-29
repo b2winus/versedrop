@@ -3,6 +3,8 @@
 export interface Verse {
 	verse: number;
 	text: string;
+	/** Set on every verse when a passage crosses chapters */
+	chapter?: number;
 }
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };

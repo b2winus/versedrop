@@ -1,5 +1,5 @@
 import { App, normalizePath, TFile } from "obsidian";
-import { BookInfo, findBook } from "./books";
+import { BookInfo, bookByUsfm, findBook, getBook, isOldTestament } from "./books";
 import { fetchBollsChapter } from "./adapters/bolls";
 import { fetchNetChapter } from "./adapters/net";
 import { EsvClient } from "./adapters/esv";
@@ -8,7 +8,7 @@ import { cleanText, Verse } from "./text";
 import { AccordanceBridge } from "./accordance";
 import { knownCitation } from "./citations";
 import { t } from "./i18n";
-import { BibleReference, inRanges } from "./reference";
+import { BibleReference, chapterParts, inRanges } from "./reference";
 
 /**
  * Language code of a translation: ko, en, zh, ja, grc, he, de, es … (two letters where one exists),
@@ -52,6 +52,8 @@ export interface Translation {
 	linkAbbr?: boolean;
 	/** Only contains this testament (Greek NT, Hebrew OT …) */
 	testament?: "OT" | "NT";
+	/** Also contains the deuterocanonical books (토비트, 집회서, 마카베오 …) */
+	deutero?: boolean;
 	/** Chinese script for book names */
 	script?: "simplified" | "traditional";
 	/** Book names in the translation's own language, keyed by USFM code (HelloAO translations) */
@@ -137,10 +139,14 @@ export const BUILT_IN_TRANSLATIONS: Translation[] = [
 
 /** Whether the translation contains this book (Greek NT, Hebrew OT …). */
 export function hasBook(tr: Translation, bookNum: number): boolean {
-	if (tr.testament === "OT") return bookNum <= 39;
-	if (tr.testament === "NT") return bookNum >= 40;
+	if (getBook(bookNum)?.deutero) return !!tr.deutero && tr.testament !== "NT";
+	if (tr.testament === "OT") return isOldTestament(bookNum);
+	if (tr.testament === "NT") return !isOldTestament(bookNum);
 	return true;
 }
+
+/** Where some Bibles keep Greek Esther / Daniel additions instead (공동번역 1977 has them as separate books). */
+const ADDITIONS: Record<string, string> = { EST: "ESG", DAN: "DAG" };
 
 /** Copyright notice for a translation: its own, a built-in one, or a known one matched by name. */
 export function noticeFor(tr: Translation): { text: string; link?: string } | undefined {
@@ -159,22 +165,73 @@ export function isCopyrighted(tr: Translation): boolean {
 
 type ChapterMap = Map<string, Verse[]>; // key: `${book}:${chapter}`
 
+/** Name and abbreviation a JSON Bible file declares about itself ("version", "versionCode", …). */
+export interface LocalBibleMeta {
+	name?: string;
+	abbr?: string;
+}
+const fileMeta = new WeakMap<ChapterMap, LocalBibleMeta>();
+
+/** Book codes some files use instead of the USFM ones. */
+const CODE_ALIASES: Record<string, string> = { JNH: "JON", EZE: "EZK", JOE: "JOL", NAH: "NAM", SOS: "SNG", SOL: "SNG", PHI: "PHP", PHL: "PHP", JAM: "JAS", MAR: "MRK", GKE: "ESG", DA1: "DAG", WSD: "WIS"};
+
+/** Positive integer from 1, "1", "(24)" or "13`"; 0 otherwise. */
+function toInt(v: unknown): number {
+	if (typeof v === "number") return Number.isInteger(v) && v > 0 ? v : 0;
+	const m = typeof v === "string" ? v.trim().match(/^\(?(\d+)\)?[`']?$/) : null;
+	return m ? parseInt(m[1], 10) : 0;
+}
+
+/** Book number for a row of an array layout. A book code wins; an unknown code (e.g. Tobit) means "skip". */
+function rowBook(row: Record<string, unknown>): number {
+	const code = row.bookCode ?? row.book_code ?? row.usfm ?? row.code;
+	if (typeof code === "string" && code.trim()) {
+		const c = code.trim().toUpperCase();
+		return bookByUsfm(CODE_ALIASES[c] ?? c)?.num ?? 0;
+	}
+	for (const v of [row.book, row.bookIndex, row.book_id, row.bookNumber]) {
+		const n = toInt(v);
+		if (n) return n <= 66 ? n : 0;
+		if (typeof v === "string" && v.trim()) return findBook(v)?.num ?? 0;
+	}
+	return 0;
+}
+
 /** Builds a chapter map from any of the supported local JSON layouts. */
 export function indexLocalBible(data: unknown): ChapterMap {
 	const map: ChapterMap = new Map();
-	const add = (book: number, chapter: number, verse: number, text: unknown) => {
-		if (!book || !chapter || !verse || typeof text !== "string") return;
+	const add = (book: number, chapter: number, verse: number, raw: unknown) => {
+		if (!book || !chapter || !verse || typeof raw !== "string") return;
+		const text = cleanText(raw);
+		if (!text) return;
 		const key = `${book}:${chapter}`;
 		let arr = map.get(key);
 		if (!arr) map.set(key, (arr = []));
-		arr.push({ verse, text: cleanText(text) });
+		// Some files repeat a verse (a stray fragment next to the real text): keep the longer one.
+		const dup = arr.find((v) => v.verse === verse);
+		if (dup) {
+			if (text.length > dup.text.length) dup.text = text;
+		} else arr.push({ verse, text });
 	};
 	const bookNum = (k: string): number => (/^\d+$/.test(k) ? parseInt(k, 10) : findBook(k)?.num ?? 0);
 
+	// Layout D — wrapper object: { "version": "개역개정", "data": [ { bookCode, chapter, verse, text }, … ] }
+	let meta: LocalBibleMeta = {};
+	if (data && typeof data === "object" && !Array.isArray(data)) {
+		const o = data as Record<string, unknown>;
+		const rows = [o.data, o.verses, o.rows].find((x) => Array.isArray(x));
+		if (rows) {
+			const str = (...vs: unknown[]) => vs.find((v): v is string => typeof v === "string" && !!v.trim())?.trim();
+			meta = { name: str(o.version, o.name, o.translation, o.title), abbr: str(o.abbreviation, o.abbr, o.versionCode, o.code) };
+			data = rows;
+		}
+	}
+
 	if (Array.isArray(data)) {
-		// Layout A — bolls.life dump: [{ book, chapter, verse, text }, ...]
+		// Layout A — bolls.life dump: [{ book, chapter, verse, text }, ...] (book may also be a code or name)
 		for (const row of data as Record<string, unknown>[]) {
-			add(Number(row.book), Number(row.chapter), Number(row.verse), row.text);
+			if (!row || typeof row !== "object") continue;
+			add(rowBook(row), toInt(row.chapter), toInt(row.verse), row.text);
 		}
 	} else if (data && typeof data === "object") {
 		const entries = Object.entries(data as Record<string, unknown>);
@@ -198,6 +255,7 @@ export function indexLocalBible(data: unknown): ChapterMap {
 		}
 	}
 	for (const arr of map.values()) arr.sort((a, b) => a.verse - b.verse);
+	if (meta.name || meta.abbr) fileMeta.set(map, meta);
 	return map;
 }
 
@@ -230,6 +288,25 @@ export class BibleSource {
 	/** Verses of the reference in this translation (empty if the passage doesn't exist there). */
 	async getPassage(tr: Translation, ref: BibleReference): Promise<Verse[]> {
 		if (!hasBook(tr, ref.book.num)) return [];
+		if (!ref.span) {
+			const verses = await this.getSingle(tr, ref);
+			// "단 13" (Susanna) or "에스 13" in a Bible that keeps the additions as their own book
+			const alt = ADDITIONS[ref.book.usfm] ? bookByUsfm(ADDITIONS[ref.book.usfm]) : undefined;
+			if (!verses.length && alt && hasBook(tr, alt.num)) return this.getSingle(tr, { ...ref, book: alt });
+			return verses;
+		}
+		// Crosses chapters: fetch each chapter in turn and tag verses with their chapter.
+		const out: Verse[] = [];
+		for (const part of chapterParts(ref)) {
+			const verses = await this.getSingle(tr, { book: ref.book, chapter: part.chapter, ranges: part.ranges });
+			if (!verses.length && out.length) break; // ran past the last chapter of the book
+			out.push(...verses.map((v) => ({ ...v, chapter: part.chapter })));
+		}
+		return out;
+	}
+
+	/** Verses of a single-chapter reference. */
+	private async getSingle(tr: Translation, ref: BibleReference): Promise<Verse[]> {
 		let verses: Verse[];
 		if (tr.source === "accordance") verses = await this.fromAccordance(tr, ref);
 		else if (tr.source === "esv") verses = await this.esv.fetch(ref);
@@ -289,29 +366,35 @@ export class BibleSource {
 		const key = `${tr.id}|acc|${ref.book.num}:${ref.chapter}:${JSON.stringify(ref.ranges)}`;
 		const hit = this.chapterCache.get(key);
 		if (hit) return hit;
-		const wanted: number[] | "all" = ref.ranges.length
+		// Open-ended ranges (rest of a chapter in a cross-chapter passage) ask for the whole chapter.
+		const openEnded = ref.ranges.some((r) => r.end >= 999);
+		const wanted: number[] | "all" = ref.ranges.length && !openEnded
 			? ref.ranges.flatMap((r) => Array.from({ length: Math.min(r.end - r.start + 1, 200) }, (_, i) => r.start + i))
 			: "all";
 		const bookName = ref.book.num === 22 ? "Song" : ref.book.en;
 		const raw = await this.accordance.fetch(tr.module ?? "", `${bookName} ${ref.chapter}`, wanted);
-		const verses = raw.map((v) => ({ verse: v.verse, text: cleanText(v.text) })).filter((v) => v.text);
+		const verses = raw
+			.map((v) => ({ verse: v.verse, text: cleanText(v.text) }))
+			.filter((v) => v.text && inRanges(v.verse, ref.ranges));
 		if (verses.length) this.chapterCache.set(key, verses);
 		return verses;
 	}
 
 	/** Reads and checks a Bible JSON file in the vault: how many chapters/verses, which testaments. */
-	async inspectFile(path: string): Promise<{ chapters: number; verses: number; ot: boolean; nt: boolean }> {
+	async inspectFile(path: string): Promise<{ chapters: number; verses: number; ot: boolean; nt: boolean; deutero: boolean; meta: LocalBibleMeta }> {
 		const index = await this.loadFile(path);
 		let verses = 0;
 		let ot = false;
 		let nt = false;
+		let deutero = false;
 		for (const [key, list] of index) {
 			verses += list.length;
 			const book = parseInt(key, 10);
-			if (book <= 39) ot = true;
+			if (book > 66) deutero = true;
+			if (isOldTestament(book)) ot = true;
 			else nt = true;
 		}
-		return { chapters: index.size, verses, ot, nt };
+		return { chapters: index.size, verses, ot, nt, deutero, meta: fileMeta.get(index) ?? {} };
 	}
 
 	private async fromFile(tr: Translation, book: number, chapter: number): Promise<Verse[]> {

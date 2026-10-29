@@ -1,5 +1,5 @@
 import { BookInfo } from "./books";
-import { BibleReference, versesLabel } from "./reference";
+import { BibleReference, passageLabel, versesLabel } from "./reference";
 import { accordanceUrl, logosUrl } from "./links";
 import { isCopyrighted, noticeFor, Translation, Verse } from "./sources";
 
@@ -54,8 +54,7 @@ export function refLabel(ref: BibleReference, lang: string, bookName: "full" | "
 	const name = bookLabel(ref.book, lang, bookName, script, names);
 	const cjk = lang === "ko" || lang === "zh" || lang === "ja";
 	const sep = cjk && bookName === "short" ? "" : " ";
-	const verses = ref.ranges.length ? `:${versesLabel(ref.ranges)}` : "";
-	return `${name}${sep}${ref.chapter}${verses}`;
+	return `${name}${sep}${passageLabel(ref)}`;
 }
 
 function header(ref: BibleReference, tr: Translation, o: FormatOptions): string {
@@ -63,8 +62,8 @@ function header(ref: BibleReference, tr: Translation, o: FormatOptions): string 
 	const vars: Record<string, string> = {
 		ref: refLabel(ref, tr.lang, o.bookName, tr.script, tr.bookNames),
 		book,
-		chapter: String(ref.chapter),
-		verses: versesLabel(ref.ranges),
+		chapter: ref.span ? `${ref.chapter}-${ref.span.endChapter}` : String(ref.chapter),
+		verses: ref.span ? passageLabel(ref).replace(/^\d+:?/, "") : versesLabel(ref.ranges),
 		version: tr.name,
 		abbr: tr.linkAbbr && tr.link ? `[${tr.abbr}](${tr.link})` : tr.abbr,
 	};
@@ -103,10 +102,16 @@ function verseNo(n: number, style: VerseNumberStyle): string {
 function bodyLines(verses: Verse[], o: FormatOptions): string[] {
 	const pieces: string[] = [];
 	let prev = -1;
+	let prevChapter = verses[0]?.chapter;
 	for (const v of verses) {
-		if (prev !== -1 && v.verse !== prev + 1) pieces.push("…");
-		pieces.push(`${verseNo(v.verse, o.verseNumbers)}${v.text}`);
+		const newChapter = v.chapter !== undefined && v.chapter !== prevChapter;
+		if (prev !== -1 && (newChapter ? v.verse !== 1 : v.verse !== prev + 1)) pieces.push("…");
+		// A new chapter is marked "4:1" (plain numbers) or with a bold chapter number.
+		const no = newChapter && o.verseNumbers === "plain" ? `${v.chapter}:${v.verse} ` : verseNo(v.verse, o.verseNumbers);
+		const mark = newChapter && o.verseNumbers !== "plain" ? `**${v.chapter}** ` : "";
+		pieces.push(`${mark}${no}${v.text}`);
 		prev = v.verse;
+		prevChapter = v.chapter;
 	}
 	return o.versePerLine ? pieces : [pieces.join(" ")];
 }

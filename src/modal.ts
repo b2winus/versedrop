@@ -201,8 +201,13 @@ export class VerseModal extends Modal {
 						body.addClass("is-empty");
 						body.setText(t.noVerses);
 					} else {
+						let chapter = verses[0].chapter;
 						for (const v of verses) {
 							const p = body.createSpan({ cls: "versedrop-verse" });
+							if (v.chapter !== undefined && v.chapter !== chapter) {
+								p.createEl("strong", { cls: "versedrop-chapter", text: `${v.chapter} ` });
+								chapter = v.chapter;
+							}
 							p.createEl("sup", { text: String(v.verse) });
 							p.appendText(v.text + " ");
 						}

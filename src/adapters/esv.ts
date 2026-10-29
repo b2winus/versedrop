@@ -37,7 +37,8 @@ export class EsvClient {
 		const key = this.key().trim();
 		if (!key) throw new Error(t.esvNoKey);
 		const book = apiBookName(ref.book);
-		const q = ref.ranges.length
+		// Open-ended ranges (rest of a chapter in a cross-chapter passage) ask for the whole chapter, filtered below.
+		const q = ref.ranges.length && !ref.ranges.some((r) => r.end >= 999)
 			? ref.ranges.map((r) => `${book} ${ref.chapter}:${r.start}-${r.end}`).join("; ")
 			: `${book} ${ref.chapter}`;
 		const cached = this.cache.get(q);

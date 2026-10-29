@@ -6,6 +6,14 @@ function span(ref: BibleReference): { first?: number; last?: number } {
 	return { first: ref.ranges[0].start, last: ref.ranges[ref.ranges.length - 1].end };
 }
 
+/** "3.16-4.3" / "1-2" for a cross-chapter reference (sep is the chapter–verse separator). */
+function crossChapter(ref: BibleReference, sep: string): string {
+	const sp = ref.span;
+	if (!sp) return "";
+	if (sp.startVerse === undefined) return `${ref.chapter}-${sp.endChapter}`;
+	return `${ref.chapter}${sep}${sp.startVerse}-${sp.endChapter}${sep}${sp.endVerse ?? ""}`;
+}
+
 /**
  * Logos — ref.ly links open in Logos desktop, mobile or web.
  *   https://ref.ly/1Cor13.4-7          (user's preferred Bible)
@@ -13,9 +21,12 @@ function span(ref: BibleReference): { first?: number; last?: number } {
  */
 export function logosUrl(ref: BibleReference, version: string): string {
 	const book = ref.book.enShort.replace(/\s/g, "");
-	const { first, last } = span(ref);
-	let r = `${book}${ref.chapter}`;
-	if (first) r += `.${first}${last && last !== first ? `-${last}` : ""}`;
+	let r = `${book}${crossChapter(ref, ".")}`;
+	if (!ref.span) {
+		const { first, last } = span(ref);
+		r = `${book}${ref.chapter}`;
+		if (first) r += `.${first}${last && last !== first ? `-${last}` : ""}`;
+	}
 	const v = version.trim();
 	return `https://ref.ly/${r}${v ? `;${encodeURIComponent(v)}` : ""}`;
 }
@@ -27,9 +38,12 @@ export function logosUrl(ref: BibleReference, version: string): string {
  */
 export function accordanceUrl(ref: BibleReference, module: string): string {
 	const name = (ref.book.num === 22 ? "Song" : ref.book.en).replace(/\s/g, "_");
-	const { first, last } = span(ref);
-	let r = `${name}_${ref.chapter}`;
-	if (first) r += `:${first}${last && last !== first ? `-${last}` : ""}`;
+	let r = `${name}_${crossChapter(ref, ":")}`;
+	if (!ref.span) {
+		const { first, last } = span(ref);
+		r = `${name}_${ref.chapter}`;
+		if (first) r += `:${first}${last && last !== first ? `-${last}` : ""}`;
+	}
 	const m = module.trim().replace(/\s/g, "_");
 	return m ? `accord://read/${encodeURIComponent(m)}?${r}` : `accord://read/${r}`;
 }

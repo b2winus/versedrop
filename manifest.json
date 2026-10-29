@@ -1,9 +1,9 @@
 {
 	"id": "versedrop",
 	"name": "Versedrop",
-	"version": "0.7.1",
+	"version": "0.7.5",
 	"minAppVersion": "1.13.0",
-	"description": "Search a Bible reference and insert the passage in Korean, English, Chinese, Japanese, Greek, Hebrew or 1,000+ other languages, with copyright notices.",
+	"description": "Search a Bible reference and insert the passage from free translations in English, Korean, German, French, Spanish, Chinese, Greek, Hebrew and 1,000+ other languages, with copyright notices.",
 	"author": "Paul Hong",
 	"authorUrl": "https://github.com/b2winus",
 	"isDesktopOnly": false,

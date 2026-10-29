@@ -1,8 +1,8 @@
 # Versedrop
 
-Search a Bible reference and drop the passage into your note — in Korean, English, and 1,000+ other languages.
+Search a Bible reference and drop the passage into your note — from free translations in English, Korean, German, French, Spanish, Portuguese, Chinese, Japanese, Greek, Hebrew and 1,000+ other languages.
 
-성경 구절을 검색해서 노트에 바로 넣어 주는 Obsidian 플러그인입니다. 한국어·영어 역본을 골라서, 또는 함께 넣을 수 있어요.
+성경 구절을 검색해서 노트에 바로 넣어 주는 Obsidian 플러그인입니다. 영어·한국어는 물론 독일어·프랑스어·스페인어·중국어·헬라어·히브리어 등 1,000개가 넘는 언어의 무료 역본을 골라서, 또는 여러 역본을 함께 넣을 수 있어요.
 
 **[English](#english)** · **[한국어](#한국어)**
 
@@ -40,15 +40,16 @@ Search a Bible reference and drop the passage into your note — in Korean, Engl
 
 ## Features
 
-- Type a reference in Korean or English — `요 3:16`, `요한복음 3장 16절`, `John 3:16`, `1 Cor 13:4-7`
-- Korean, English, **Chinese, Japanese, Greek and Hebrew** — pick languages with one click and compare translations side by side
+- Type a reference in English, Korean, Chinese, Japanese — or with the book names of any translation you add (`Johannes 3:16`, `Juan 3:16`, `Jean 3:16`)
+- Single verses, ranges, whole chapters and **passages that cross chapters** — `1 Cor 13:4-7`, `Ps 23`, `John 3:16-4:3`, `Gen 1-2`
+- **Translations in 1,000+ languages:** English, Korean, German, French, Spanish, Portuguese, Chinese, Japanese, Greek, Hebrew and many more — pick languages with one click and compare translations side by side
 - Tick the translations you want and insert them in one go; your picks are remembered
 - **Hotkeys and presets:** set hotkeys right from the plugin settings, insert without opening a window, and save translation sets (e.g. *Original languages*) as their own commands
 - **ESV** with your own free API key and **NET** from its official API, alongside public-domain KJV, WEB, BSB and more
 - **Accordance (Mac):** pull text from Bible modules you own in Accordance — 개역개정, NIV, NASB and more
 - **Copyright notices added automatically** for copyrighted translations, plus a warning for long quotations
 - **Logos & Accordance links:** each passage can link straight to the same passage in your Bible software
-- **1,000+ languages from HelloAO:** browse free translations by language (German, Spanish, French, Portuguese …) and add them with one click — their own book names and copyright notices come along, and you can type references with those book names (`Johannes 3:16`, `Juan 3:16`)
+- **Add any language from HelloAO:** browse free translations by language (German, French, Spanish, Portuguese, Russian, Italian, Dutch, Latin …) and add them with one click — their own book names and copyright notices come along, and you can type references with those book names (`Johannes 3:16`, `Juan 3:16`)
 - **Backup source:** if bolls.life is unreachable, built-in public-domain texts (KJV, WEB, BSB …) are fetched from HelloAO instead
 - Add any translation from bolls.life by code, or from a JSON file in your vault
 - Callout, blockquote or plain text output, with options for verse numbers, line breaks and bilingual grouping
@@ -80,7 +81,7 @@ Requires **Obsidian 1.13 or later**.
 
 ## Writing references
 
-Korean, English, Chinese (simplified or traditional) and Japanese book names, full or abbreviated, are all understood. Spaces are optional.
+English, Korean, Chinese (simplified or traditional) and Japanese book names, full or abbreviated, are all understood — plus the book names of every translation you add from HelloAO (German, French, Spanish …). Spaces are optional.
 
 | What you want | Examples |
 |---|---|
@@ -88,18 +89,22 @@ Korean, English, Chinese (simplified or traditional) and Japanese book names, fu
 | A range | `1 Cor 13:4-7` · `고전 13:4-7` · `요 3장 16~18절` |
 | Several parts of a chapter | `Rom 8:28, 31-39` · `롬 8:28, 31-39` |
 | A whole chapter | `Ps 23` · `시 23` · `시편 23편` |
+| Across chapters | `John 3:16-4:3` · `1 Cor 12:31-13:13` · `요 3:16-4:3` · `요한복음 3장 16절-4장 3절` |
+| Several whole chapters | `Gen 1-2` · `창 1-2` · `창 1-2장` |
+| Other languages (HelloAO) | `Johannes 3:16` (German) · `Jean 3:16` (French) · `Juan 3:16` (Spanish) |
+| Deuterocanon | `Tob 3:1` · `Sir 1:1` · `1 Macc 2:3` · `토비트 3:1` · `집회 1:1` · `마카상 2:3` |
 | Korean long form | `요한복음 3장 16절` |
 | Chinese | `约翰福音 3:16` · `約翰福音3章16節` · `约3:16` · `林前13:4-7` |
 | Japanese | `ヨハネによる福音書 3:16` · `ヨハ3章16節` · `1コリ13:4-7` |
 
 Book abbreviations follow common usage: English SBL-style (`Gen`, `Exod`, `1 Sam`, `Phil`, `Phlm`, `Rev`) and the Korean Bible Society style (`창`, `출`, `삼상`, `빌`, `몬`, `계`). Full names like `Philippians` or `빌립보서` also work.
 
-A reference must stay within one chapter — `John 3:16-4:2` is not supported yet; search the two chapters separately.
+A reference can cover up to 10 chapters (each chapter is a separate download). When a passage crosses chapters, the new chapter is marked in the text — `4:1` with plain verse numbers, or a bold **4** before the verse number otherwise. A range past the end of a book stops at its last chapter (`Phil 3-9` → Philippians 3–4).
 
 ## The search window
 
 - **Search box** — type a reference and press <kbd>Enter</kbd>.
-- **Language chips** — one chip per language in *My translations* (Korean, English, Chinese, Japanese, Greek, Hebrew). Click to turn languages on or off; **All** shows every language. Your choice is remembered next time.
+- **Language chips** — one chip per language in *My translations* (English, Korean, German, French, Greek …). Click to turn languages on or off; **All** shows every language. Your choice is remembered next time.
 - Greek texts contain only the New Testament and Hebrew WLC only the Old Testament, so their cards appear only when the book is in them.
 - **Translation cards** — one card per enabled translation, showing the text with verse numbers. The checkbox on each card decides whether it is inserted. Checked cards are highlighted, and your choices are remembered next time.
 - **Insert** — inserts every checked card that loaded successfully. Shortcut: <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
@@ -160,6 +165,25 @@ Add them from the **Add a translation** (+) menu (each language has its own grou
 - **Hebrew** cards are shown right-to-left. Hebrew versification sometimes differs from English Bibles (e.g. psalm titles counted as verse 1, Malachi 4 = Malachi 3:19–24), so check the verse number if a Hebrew card looks off by one.
 - **SBLGNT** always gets its required notice.
 - **Copyrighted editions** — 新标点和合本 (simplified), 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — are not built in. If you own them in Accordance, add them as Accordance modules; Versedrop recognises them and adds the right copyright notice. (They can also be added by bolls.life code at your own discretion, e.g. `CUNPS`, `JPNICT`.)
+
+### Deuterocanonical books
+
+Tobit, Judith, Wisdom, Sirach, Baruch, 1–2 Maccabees and the Greek additions to Esther and Daniel can be searched in translations that contain them: **JSON files** (e.g. 공동번역), **HelloAO** translations and **Accordance** modules (e.g. NRSV with Apocrypha).
+
+| Book | Korean (공동번역 · 가톨릭 성경) | English |
+|---|---|---|
+| Tobit | 토비트 · 토빗 (`토비`) | Tobit (`Tob`) |
+| Judith | 유딧 (`유딧`) | Judith (`Jdt`) |
+| Additions to Esther | 에스델 부록 (`에스부`) | Add Esth |
+| Wisdom | 지혜서 (`지혜`) | Wisdom of Solomon (`Wis`) |
+| Sirach | 집회서 (`집회`) | Sirach (`Sir`), Ecclesiasticus |
+| Baruch | 바룩 (`바룩`) | Baruch (`Bar`) |
+| Additions to Daniel | 다니엘 부록 (`단부`) | Add Dan |
+| 1–2 Maccabees | 마카베오상·하 (`마카상`, `마카하`, `1마카`) | 1–2 Maccabees (`1 Macc`) |
+
+- JSON files are checked when you load them; Accordance modules when you click **Test** (it tries Tobit 1:1). For HelloAO translations added before 0.7.5, or anything detected wrongly, use the **Includes the deuterocanon** switch in the translation's editor.
+- Built-in bolls.life translations don't include these books.
+- In Bibles that keep the Greek additions as separate books (공동번역 1977), `단 13` (Susanna) and `단 14` fall back to *Additions to Daniel*, and Esther chapters 11–16 to *Additions to Esther*.
 
 ### Choosing your translations
 
@@ -261,10 +285,11 @@ The full list is at <https://bolls.life/static/bolls/app/views/languages.json>. 
 
 **JSON file** — for a Bible JSON file you are licensed to use. No need to type a path:
 
-- **Import from computer** → choose the file. It is copied into the `Versedrop Bibles` folder in your vault and connected automatically.
+- **Import from computer** → choose the file. It is copied into your import folder (`Versedrop Bibles` by default) and connected automatically.
+- **Save to folder** — choose where imported files go, in the same dialog or under Settings → Versedrop → *JSON files*. Type a path (folders are suggested as you type), pick one with the 📁 button, or create a new folder with ＋ — in the 📁 picker you can also type a new name and press Enter to create it. Nested paths such as `Library/Bibles` work; missing folders are created on import. Leave it empty to use the vault root.
 - **Pick from vault** (🔍) → search the JSON files already in your vault by name, or just start typing in the field to autocomplete.
 
-Versedrop then checks the file and shows how many chapters and verses it found and whether it covers the OT, the NT or both. Three layouts are recognised:
+Versedrop then checks the file and shows how many chapters and verses it found and whether it covers the OT, the NT or both. Four layouts are recognised:
 
 ```jsonc
 // A. array (bolls.life dump format)
@@ -275,9 +300,12 @@ Versedrop then checks the file and shows how many chapters and verses it found a
 
 // C. flat keys — Korean or English abbreviations
 { "요3:16": "...", "John 3:16": "..." }
+
+// D. named wrapper — the file's own name is filled in for you
+{ "version": "개역개정", "data": [{ "bookCode": "jhn", "chapter": "3", "verse": 16, "text": "..." }] }
 ```
 
-Book numbers run from 1 (Genesis) to 66 (Revelation). HTML tags and `<heading>`-style section titles are removed automatically. After replacing a file, click **Clear cache**.
+Books can be numbers (1 Genesis – 66 Revelation), book codes (`gen`, `jhn`, `1co` …) or names. In layout D a book code takes priority over a book number, so files that number books differently (e.g. with deuterocanonical books in between) still line up; deuterocanonical books (Tobit, Sirach, 1–2 Maccabees …) are read too — see [Deuterocanonical books](#deuterocanonical-books). Repeated or empty verses are tidied up, and the translation name and copyright notice are filled in from the file (`개역개정`, `새번역`, `공동번역` … get the Korean Bible Society notice automatically). HTML tags and `<heading>`-style section titles are removed automatically. After replacing a file, click **Clear cache**.
 
 **Accordance module** — see [above](#using-your-accordance-modules-mac).
 
@@ -377,15 +405,16 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ## 주요 기능
 
-- 한글이나 영어로 구절 입력 — `요 3:16`, `요한복음 3장 16절`, `John 3:16`, `고전 13:4-7`
-- 한국어·영어에 더해 **중국어·일본어·헬라어·히브리어** — 언어를 클릭 한 번으로 골라 역본을 나란히 비교
+- 한글·영어·중국어·일본어로 구절 입력 — 추가한 역본의 책 이름으로도 검색돼요(`Johannes 3:16`, `Juan 3:16`, `Jean 3:16`)
+- 한 절, 범위, 장 전체, **장을 넘는 범위**까지 — `고전 13:4-7`, `시 23`, `요 3:16-4:3`, `창 1-2`
+- **1,000개가 넘는 언어의 역본:** 한국어·영어·독일어·프랑스어·스페인어·포르투갈어·중국어·일본어·헬라어·히브리어 등 — 언어를 클릭 한 번으로 골라 역본을 나란히 비교
 - 원하는 역본만 체크해서 한 번에 삽입 (선택은 다음에도 기억됨)
 - **단축키와 프리셋:** 플러그인 설정에서 바로 단축키 지정, 창 없이 바로 삽입, 자주 쓰는 역본 조합(예: *원어 대조*)을 명령으로 저장
 - 공개 역본(KJV, WEB, BSB 등)에 더해 **ESV**(개인 무료 API 키)와 **NET**(공식 API) 지원
 - **Accordance (Mac):** Accordance에서 구입한 역본(개역개정, NIV, NASB 등)의 본문을 바로 가져오기
 - 저작권 역본에 **출처 문구 자동 표기**, 많은 분량을 인용하면 경고
 - **Logos·Accordance 링크:** 구절마다 내 성경 프로그램에서 바로 열리는 링크 추가
-- **HelloAO에서 1,000개 이상 언어:** 독일어·스페인어·프랑스어·포르투갈어 등 무료 역본을 언어별로 찾아 클릭 한 번에 추가. 그 역본의 책 이름과 저작권 안내가 함께 들어오고, 그 책 이름으로도 검색돼요(`Johannes 3:16`, `Juan 3:16`)
+- **HelloAO에서 어떤 언어든 추가:** 독일어·프랑스어·스페인어·포르투갈어·러시아어·이탈리아어·네덜란드어·라틴어 등 무료 역본을 언어별로 찾아 클릭 한 번에 추가. 그 역본의 책 이름과 저작권 안내가 함께 들어오고, 그 책 이름으로도 검색돼요(`Johannes 3:16`, `Juan 3:16`)
 - **예비 소스:** bolls.life에 접속이 안 되면 기본 공개 역본(KJV, WEB, BSB 등)을 HelloAO에서 대신 가져와요
 - bolls.life 역본 코드나 볼트 안 JSON 파일로 역본 추가
 - 콜아웃·인용문·일반 텍스트 형식, 절 번호, 줄바꿈, 한영 병기 묶기 옵션
@@ -417,7 +446,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ## 구절 입력 방법
 
-한글·영어·중국어(간체/번체)·일본어 책 이름, 전체 이름·약어 모두 알아들어요. 띄어쓰기는 있어도 없어도 됩니다.
+한글·영어·중국어(간체/번체)·일본어 책 이름, 전체 이름·약어 모두 알아들어요. HelloAO에서 추가한 역본(독일어·프랑스어·스페인어 등)의 책 이름도 알아들어요. 띄어쓰기는 있어도 없어도 됩니다.
 
 | 원하는 것 | 입력 예 |
 |---|---|
@@ -425,18 +454,22 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 | 연속된 절 | `고전 13:4-7` · `요 3장 16~18절` · `1 Cor 13:4-7` |
 | 떨어진 절 여러 개 | `롬 8:28, 31-39` · `Rom 8:28, 31-39` |
 | 장 전체 | `시 23` · `시편 23편` · `Ps 23` |
+| 장을 넘는 범위 | `요 3:16-4:3` · `요한복음 3장 16절-4장 3절` · `고전 12:31-13:13` · `John 3:16-4:3` |
+| 여러 장 전체 | `창 1-2` · `창 1-2장` · `Gen 1-2` |
+| 다른 언어 (HelloAO) | `Johannes 3:16` (독일어) · `Jean 3:16` (프랑스어) · `Juan 3:16` (스페인어) |
+| 외경(제2경전) | `토비트 3:1` · `토빗 3:1` · `집회 1:1` · `지혜서 3장 1절` · `마카상 2:3` · `Sir 1:1` |
 | 한글 풀어 쓰기 | `요한복음 3장 16절` |
 | 중국어 | `约翰福音 3:16` · `約翰福音3章16節` · `约3:16` · `林前13:4-7` |
 | 일본어 | `ヨハネによる福音書 3:16` · `ヨハ3章16節` · `1コリ13:4-7` |
 
 약어는 대한성서공회 방식(`창`, `출`, `삼상`, `빌`, `몬`, `계` 등)과 영어 SBL 방식(`Gen`, `Exod`, `1 Sam`, `Phil`, `Phlm`, `Rev` 등)을 모두 지원해요. `빌립보서`, `Philippians` 같은 전체 이름도 됩니다.
 
-한 번에 한 장 안의 구절만 검색할 수 있어요. `요 3:16-4:2`처럼 장을 넘는 범위는 아직 지원하지 않으니 두 번 나눠서 검색해 주세요.
+한 번에 10장까지 가져올 수 있어요(장마다 따로 내려받기 때문이에요). 장이 바뀌는 곳은 본문에 표시돼요. 절 번호를 일반 숫자로 쓰면 `4:1`, 그 밖에는 절 번호 앞에 굵은 **4**가 붙어요. 책의 마지막 장을 넘는 범위는 마지막 장까지만 가져와요(`빌 3-9` → 빌립보서 3–4장).
 
 ## 검색 창 사용법
 
 - **검색창** — 구절을 입력하고 <kbd>Enter</kbd>.
-- **언어 버튼** — *내 역본*에 있는 언어마다 버튼이 생겨요(한국어, 영어, 중국어, 일본어, 헬라어, 히브리어). 눌러서 켜고 끄고, **전체**를 누르면 모든 언어가 보여요. 고른 언어는 다음에도 그대로 유지돼요.
+- **언어 버튼** — *내 역본*에 있는 언어마다 버튼이 생겨요(한국어, 영어, 독일어, 프랑스어, 헬라어 …). 눌러서 켜고 끄고, **전체**를 누르면 모든 언어가 보여요. 고른 언어는 다음에도 그대로 유지돼요.
 - 헬라어 역본은 신약만, 히브리어 WLC는 구약만 들어 있어서, 그 책이 있는 경우에만 카드가 나타나요.
 - **역본 카드** — 켜 둔 역본마다 카드가 하나씩 생기고, 절 번호와 함께 본문이 보여요. 카드의 체크박스로 삽입할지 정합니다. 체크한 카드는 강조 표시되고, 선택은 다음번에도 그대로 유지돼요.
 - **삽입** — 체크했고 정상적으로 불러온 카드를 모두 넣습니다. 단축키는 <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
@@ -497,6 +530,25 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - **히브리어** 카드는 오른쪽에서 왼쪽으로 표시돼요. 히브리어 성경은 절 구분이 한국어·영어 성경과 다른 곳이 있어요(예: 시편 표제가 1절로 셈, 말라기 4장 = 말라기 3:19–24). 히브리어 카드가 한 절씩 어긋나 보이면 절 번호를 확인해 보세요.
 - **SBLGNT**는 이용 조건에 따라 출처 문구가 항상 붙어요.
 - **저작권 판본** — 新标点和合本(간체), 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — 은 기본으로 넣지 않았어요. Accordance에 가지고 계시면 Accordance 모듈로 추가하세요. Versedrop이 알아보고 맞는 출처 문구를 자동으로 붙여요. (bolls.life 코드 `CUNPS`, `JPNICT` 등으로 직접 추가할 수도 있지만 저작권은 직접 확인해 주세요.)
+
+### 외경(제2경전)
+
+토비트, 유딧, 지혜서, 집회서, 바룩, 마카베오상·하, 에스델·다니엘 부록은 이 책들이 들어 있는 역본에서 검색돼요. **JSON 파일**(예: 공동번역), **HelloAO** 역본, **Accordance** 모듈(예: NRSV with Apocrypha)이 해당돼요.
+
+| 책 | 한글 (공동번역 · 가톨릭 성경) | 영어 |
+|---|---|---|
+| 토비트 | 토비트 · 토빗 (`토비`) | Tobit (`Tob`) |
+| 유딧 | 유딧 (`유딧`) | Judith (`Jdt`) |
+| 에스델 부록 | 에스델 부록 (`에스부`) | Add Esth |
+| 지혜서 | 지혜서 (`지혜`) | Wisdom of Solomon (`Wis`) |
+| 집회서 | 집회서 (`집회`) | Sirach (`Sir`) |
+| 바룩 | 바룩 (`바룩`) | Baruch (`Bar`) |
+| 다니엘 부록 | 다니엘 부록 (`단부`) | Add Dan |
+| 마카베오상·하 | 마카베오상·하 (`마카상`, `마카하`, `1마카`) | 1–2 Maccabees (`1 Macc`) |
+
+- JSON 파일은 불러올 때, Accordance 모듈은 **연결 테스트** 때(토비트 1:1을 시험) 자동으로 확인해요. 0.7.5 전에 추가한 HelloAO 역본이나 잘못 인식된 경우에는 역본 편집 창의 **외경(제2경전) 포함** 스위치를 켜 주세요.
+- 기본 제공(bolls.life) 역본에는 외경이 없어요.
+- 외경을 따로 된 책으로 둔 성경(공동번역 1977)에서는 `단 13`(수산나)·`단 14`는 *다니엘 부록*에서, 에스델 11–16장은 *에스델 부록*에서 찾아 줘요.
 
 ### 내 역본 고르기
 
@@ -598,10 +650,11 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 **JSON 파일** — 사용 권한이 있는 성경 JSON 파일을 연결해요. 경로를 직접 칠 필요가 없어요.
 
-- **컴퓨터에서 불러오기** → 파일을 고르면 볼트의 `Versedrop Bibles` 폴더로 복사되고 자동으로 연결돼요.
+- **컴퓨터에서 불러오기** → 파일을 고르면 저장 폴더(기본값 `Versedrop Bibles`)로 복사되고 자동으로 연결돼요.
+- **저장 폴더** — 불러온 파일을 둘 곳을 같은 창이나 설정 → Versedrop → *JSON 파일*에서 정해요. 경로를 직접 입력하거나(입력하면 폴더 목록이 떠요), 📁 버튼으로 고르거나, ＋ 버튼으로 새 폴더를 만들 수 있어요. 📁 고르기 창에서 없는 이름을 입력하고 Enter를 눌러도 바로 만들어져요. `자료/성경`처럼 하위 폴더도 되고, 없는 폴더는 불러올 때 자동으로 만들어져요. 비워 두면 볼트 맨 위에 저장돼요.
 - **볼트에서 고르기**(🔍) → 이미 볼트에 있는 JSON 파일을 이름으로 찾아 골라요. 입력 칸에 글자를 치기 시작해도 자동완성돼요.
 
-연결하면 Versedrop이 파일을 확인해서 몇 장·몇 절을 읽었는지, 구약·신약 중 어디가 들어 있는지 알려 줘요. 세 가지 형식을 인식해요.
+연결하면 Versedrop이 파일을 확인해서 몇 장·몇 절을 읽었는지, 구약·신약 중 어디가 들어 있는지 알려 줘요. 네 가지 형식을 인식해요.
 
 ```jsonc
 // A. 배열 (bolls.life 덤프 형식)
@@ -612,9 +665,12 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 // C. 키 형식 — 한글·영어 약어
 { "요3:16": "...", "John 3:16": "..." }
+
+// D. 이름이 붙은 묶음 — 파일에 적힌 역본 이름이 자동으로 들어가요
+{ "version": "개역개정", "data": [{ "bookCode": "jhn", "chapter": "3", "verse": 16, "text": "..." }] }
 ```
 
-책 번호는 창세기 1부터 요한계시록 66까지예요. HTML 태그나 `<천지 창조>` 같은 소제목은 자동으로 지워집니다. 파일을 바꾼 뒤에는 **캐시 비우기**를 눌러 주세요.
+책은 번호(창세기 1 ~ 요한계시록 66), 책 코드(`gen`, `jhn`, `1co` …), 이름 모두 돼요. D 형식에서는 책 코드를 먼저 보기 때문에, 외경(제2경전)이 중간에 끼어 책 번호가 다른 파일도 제대로 맞춰져요. 외경(토비트, 집회서, 마카베오 등)도 함께 읽어요. [외경(제2경전)](#외경제2경전) 참고. 중복되거나 빈 절은 정리되고, 역본 이름과 출처 문구도 파일에서 채워져요(`개역개정`, `새번역`, `공동번역` 등은 대한성서공회 출처 문구가 자동으로 붙어요). HTML 태그나 `<천지 창조>` 같은 소제목은 자동으로 지워집니다. 파일을 바꾼 뒤에는 **캐시 비우기**를 눌러 주세요.
 
 **Accordance 모듈** — [위의 설명](#accordance-역본-연결하기-mac)을 참고하세요.
 

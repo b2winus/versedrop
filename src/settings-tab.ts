@@ -11,7 +11,10 @@ import {
 	SettingDefinitionItem,
 	SettingDefinitionPage,
 	SettingPage,
+	SuggestModal,
 	TFile,
+	TFolder,
+	TextComponent,
 	normalizePath,
 } from "obsidian";
 import type VersedropPlugin from "./main";
@@ -25,8 +28,179 @@ import { DEFAULT_SETTINGS, Preset, sortByOrder } from "./settings";
 import { BUILT_IN_TRANSLATIONS, LANGS, Translation } from "./sources";
 
 const SUPPORT_URL = "https://buymeacoffee.com/4h9fg59wsgd";
-/** Vault folder that imported Bible JSON files are copied into. */
-const IMPORT_FOLDER = "Versedrop Bibles";
+/** Default vault folder that imported Bible JSON files are copied into. */
+const IMPORT_FOLDER = DEFAULT_SETTINGS.importFolder;
+
+/** Cleans a folder path typed by the user: "/My Bibles/" → "My Bibles"; "" or "/" → vault root (""). */
+export function cleanFolderPath(raw: string): string {
+	const p = raw.trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+	return p ? normalizePath(p) : "";
+}
+
+/** Why a folder path can't be used, or null when it's fine. */
+export function folderPathProblem(path: string): string | null {
+	if (path.split("/").some((part) => part.startsWith(".") || part.trim() === "")) return t.sFolderHidden;
+	if (/[*?"<>|:]/.test(path)) return t.sFolderBadChars;
+	return null;
+}
+
+/** Creates a folder and any missing parent folders. Returns false if a file is in the way. */
+export async function ensureFolder(app: App, path: string): Promise<boolean> {
+	if (!path) return true;
+	let cur = "";
+	for (const part of path.split("/")) {
+		cur = cur ? `${cur}/${part}` : part;
+		const existing = app.vault.getAbstractFileByPath(cur);
+		if (existing instanceof TFolder) continue;
+		if (existing) return false;
+		await app.vault.createFolder(cur);
+	}
+	return true;
+}
+
+function vaultFolders(app: App): TFolder[] {
+	return app.vault
+		.getAllLoadedFiles()
+		.filter((f): f is TFolder => f instanceof TFolder && !f.isRoot() && !f.path.split("/").some((p) => p.startsWith(".")))
+		.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** Autocompletes folder paths while typing. */
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+	protected getSuggestions(query: string): TFolder[] {
+		const q = query.toLowerCase();
+		return vaultFolders(this.app).filter((f) => f.path.toLowerCase().includes(q));
+	}
+
+	renderSuggestion(folder: TFolder, el: HTMLElement): void {
+		el.setText(folder.path);
+	}
+
+	selectSuggestion(folder: TFolder, evt: MouseEvent | KeyboardEvent): void {
+		super.selectSuggestion(folder, evt);
+		this.setValue(folder.path);
+		this.close();
+	}
+}
+
+type FolderChoice = { folder: TFolder } | { create: string } | { root: true };
+
+/** Lists vault folders to pick one; typing a name that doesn't exist offers to create it. */
+class FolderModal extends SuggestModal<FolderChoice> {
+	constructor(
+		app: App,
+		private onPick: (path: string) => void,
+	) {
+		super(app);
+		this.setPlaceholder(t.sFolderPickPlaceholder);
+		this.setInstructions([
+			{ command: "↵", purpose: t.sFolderPickEnter },
+			{ command: "esc", purpose: t.sCancel },
+		]);
+	}
+
+	getSuggestions(query: string): FolderChoice[] {
+		const q = query.trim().toLowerCase();
+		const folders = vaultFolders(this.app).filter((f) => f.path.toLowerCase().includes(q));
+		const out: FolderChoice[] = [];
+		const typed = cleanFolderPath(query);
+		if (typed && !folders.some((f) => f.path.toLowerCase() === typed.toLowerCase())) out.push({ create: typed });
+		if (!q) out.push({ root: true });
+		return [...out, ...folders.map((folder) => ({ folder }))];
+	}
+
+	renderSuggestion(c: FolderChoice, el: HTMLElement): void {
+		if ("create" in c) {
+			el.addClass("versedrop-folder-create");
+			el.createSpan({ text: `＋ ${t.sFolderCreateItem(c.create)}` });
+		} else if ("root" in c) el.setText(t.sFolderRoot);
+		else el.setText(c.folder.path);
+	}
+
+	onChooseSuggestion(c: FolderChoice): void {
+		if ("create" in c) {
+			const problem = folderPathProblem(c.create);
+			if (problem) {
+				new Notice(problem, 8000);
+				return;
+			}
+			void ensureFolder(this.app, c.create).then((ok) => {
+				if (!ok) new Notice(t.sFolderFileInWay(c.create), 8000);
+				else {
+					new Notice(t.sFolderCreated(c.create), 5000);
+					this.onPick(c.create);
+				}
+			});
+		} else this.onPick("root" in c ? "" : c.folder.path);
+	}
+}
+
+/**
+ * Adds the "save imported files to" controls to a setting: a path field with folder suggestions,
+ * a folder picker (which can also create folders) and a "create this folder" button.
+ */
+function renderImportFolder(setting: Setting, app: App, plugin: VersedropPlugin): void {
+	const describe = () => {
+		const path = plugin.settings.importFolder;
+		const problem = path ? folderPathProblem(path) : null;
+		const shown = path || t.sFolderRoot;
+		const state = problem
+			? problem
+			: !path || app.vault.getAbstractFileByPath(path) instanceof TFolder
+				? t.sFolderExists
+				: t.sFolderWillCreate;
+		setting.setDesc(`${t.sImportFolderDesc} ${t.sFolderNow(shown)} — ${state}`);
+	};
+	const set = (raw: string) => {
+		plugin.settings.importFolder = cleanFolderPath(raw);
+		void plugin.saveSettings();
+		describe();
+	};
+	let input: HTMLInputElement | null = null;
+	setting.addText((x) => {
+		input = x.inputEl;
+		x.setPlaceholder(t.sFolderRoot)
+			.setValue(plugin.settings.importFolder)
+			.onChange((v) => set(v));
+		new FolderSuggest(app, x.inputEl).onSelect((f) => set(f.path));
+	});
+	setting.addExtraButton((b) =>
+		b
+			.setIcon("folder-search")
+			.setTooltip(t.sFolderPick)
+			.onClick(() =>
+				new FolderModal(app, (path) => {
+					if (input) input.value = path;
+					set(path);
+				}).open(),
+			),
+	);
+	setting.addExtraButton((b) =>
+		b
+			.setIcon("folder-plus")
+			.setTooltip(t.sFolderCreate)
+			.onClick(() => {
+				const path = plugin.settings.importFolder;
+				const problem = path ? folderPathProblem(path) : null;
+				if (problem) return void new Notice(problem, 8000);
+				if (!path || app.vault.getAbstractFileByPath(path) instanceof TFolder) return void new Notice(t.sFolderAlready(path || t.sFolderRoot), 5000);
+				void ensureFolder(app, path).then((ok) => {
+					new Notice(ok ? t.sFolderCreated(path) : t.sFolderFileInWay(path), 6000);
+					describe();
+				});
+			}),
+	);
+	setting.addExtraButton((b) =>
+		b
+			.setIcon("rotate-ccw")
+			.setTooltip(t.sFolderReset(IMPORT_FOLDER))
+			.onClick(() => {
+				if (input) input.value = IMPORT_FOLDER;
+				set(IMPORT_FOLDER);
+			}),
+	);
+	describe();
+}
 
 function jsonFiles(app: App): TFile[] {
 	return app.vault
@@ -152,6 +326,19 @@ export class VersedropSettingTab extends PluginSettingTab {
 									.onClick(() => window.open("https://api.esv.org/account/create-application/")),
 							);
 						},
+					},
+				],
+			},
+			// ── JSON files ───────────────────────────────────────────
+			{
+				type: "group",
+				heading: t.sJsonFiles,
+				items: [
+					{
+						name: t.sImportFolder,
+						desc: t.sImportFolderDesc,
+						aliases: ["folder", "폴더", "json", "import"],
+						render: (setting) => renderImportFolder(setting, this.app, this.plugin),
 					},
 				],
 			},
@@ -470,6 +657,7 @@ class HelpPage extends SettingPage {
 
 /** Edits a translation the user added (Accordance module, bolls.life code or JSON file). */
 export class TranslationModal extends Modal {
+	private nameInput: TextComponent | null = null;
 	constructor(
 		app: App,
 		private plugin: VersedropPlugin,
@@ -487,7 +675,7 @@ export class TranslationModal extends Modal {
 		this.titleEl.setText(`${t.sEdit} · ${kind}`);
 
 		new Setting(contentEl).setName(t.sName).addText((x) =>
-			x
+			(this.nameInput = x)
 				.setPlaceholder(t.sNamePlaceholder)
 				.setValue(tr.name)
 				.onChange((v) => {
@@ -544,6 +732,7 @@ export class TranslationModal extends Modal {
 				.addButton((b) =>
 					b.setButtonText(t.sPickInVault).onClick(() => new JsonFileModal(this.app, (file) => void this.useFile(file.path)).open()),
 				);
+			renderImportFolder(new Setting(contentEl).setName(t.sImportFolder), this.app, this.plugin);
 		}
 		if (tr.source === "accordance") {
 			src.addButton((b) =>
@@ -606,12 +795,15 @@ export class TranslationModal extends Modal {
 		try {
 			const info = await this.plugin.source.inspectFile(path);
 			tr.testament = info.ot && info.nt ? undefined : info.ot ? "OT" : "NT";
+			tr.deutero = info.deutero || undefined;
 			if (!tr.name) {
-				const base = path.split("/").pop()?.replace(/\.json$/i, "") ?? "";
+				// Use the name the file declares ("version": "개역개정"), else the file name.
+				const base = info.meta.name ?? path.split("/").pop()?.replace(/\.json$/i, "") ?? "";
 				tr.name = base;
 				tr.abbr = base;
+				this.nameInput?.setValue(base);
 			}
-			const scope = info.ot && info.nt ? t.sTestAll : info.ot ? t.sTestOT : t.sTestNT;
+			const scope = (info.ot && info.nt ? t.sTestAll : info.ot ? t.sTestOT : t.sTestNT) + (info.deutero ? ` + ${t.sDeutero}` : "");
 			new Notice(t.fileOk(info.chapters, info.verses, scope), 8000);
 			this.renderCoverage();
 		} catch (e) {
@@ -633,14 +825,22 @@ export class TranslationModal extends Modal {
 					new Notice(t.errJson(file.name), 10000);
 					return;
 				}
-				const folder = IMPORT_FOLDER;
-				if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+				const folder = cleanFolderPath(this.plugin.settings.importFolder);
+				const problem = folder ? folderPathProblem(folder) : null;
+				if (problem) {
+					new Notice(problem, 10000);
+					return;
+				}
+				if (!(await ensureFolder(this.app, folder))) {
+					new Notice(t.sFolderFileInWay(folder), 10000);
+					return;
+				}
 				const safe = file.name.replace(/[\\/:*?"<>|]/g, "_");
-				let path = normalizePath(`${folder}/${safe}`);
+				let path = normalizePath(folder ? `${folder}/${safe}` : safe);
 				const existing = this.app.vault.getAbstractFileByPath(path);
 				if (existing instanceof TFile) await this.app.vault.modify(existing, text);
 				else {
-					if (existing) path = normalizePath(`${folder}/${Date.now()}-${safe}`);
+					if (existing) path = normalizePath(folder ? `${folder}/${Date.now()}-${safe}` : `${Date.now()}-${safe}`);
 					await this.app.vault.create(path, text);
 				}
 				new Notice(t.fileImported(path), 6000);
@@ -667,6 +867,17 @@ export class TranslationModal extends Modal {
 						void this.plugin.saveSettings();
 					}),
 			);
+		// bolls.life numbers deuterocanonical books its own way, so only files, HelloAO and Accordance offer this.
+		if (tr.source !== "bolls")
+			new Setting(this.coverageEl)
+				.setName(t.sDeuteroToggle)
+				.setDesc(t.sDeuteroToggleDesc)
+				.addToggle((x) =>
+					x.setValue(!!tr.deutero).onChange((v) => {
+						tr.deutero = v || undefined;
+						void this.plugin.saveSettings();
+					}),
+				);
 	}
 
 	/**
@@ -693,9 +904,18 @@ export class TranslationModal extends Modal {
 		const nt = !!found.NT;
 		if (!ot && !nt) throw lastError ?? new Error(t.accBadModule(tr.module ?? ""));
 		tr.testament = ot && nt ? undefined : ot ? "OT" : "NT";
+		// Deuterocanon: try Tobit 1:1 (modules such as NRSV with Apocrypha, 공동번역)
+		if (!nt || ot) {
+			try {
+				const v = await this.plugin.source.getPassage({ ...probe, deutero: true }, parseReference("Tob 1:1"));
+				tr.deutero = v.length ? true : undefined;
+			} catch {
+				tr.deutero = undefined;
+			}
+		}
 		await this.plugin.saveSettings();
 		const sample = (found.NT ?? found.OT ?? "").slice(0, 70);
-		const scope = ot && nt ? t.sTestAll : ot ? t.sTestOT : t.sTestNT;
+		const scope = (ot && nt ? t.sTestAll : ot ? t.sTestOT : t.sTestNT) + (tr.deutero ? ` + ${t.sDeutero}` : "");
 		return t.accTestCoverage(tr.module ?? "", scope, sample);
 	}
 
