@@ -1,4 +1,12 @@
 /** Verse text helpers shared by every source. */
+import { Converter } from "opencc-js/t2cn";
+
+let t2s: ((s: string) => string) | undefined;
+/** Traditional → Simplified Chinese (OpenCC, character and phrase level). */
+export function toSimplified(s: string): string {
+	t2s ??= Converter({ from: "t", to: "cn" });
+	return t2s(s);
+}
 
 export interface Verse {
 	verse: number;

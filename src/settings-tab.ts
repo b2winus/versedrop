@@ -25,7 +25,7 @@ import { HelloAoBrowser } from "./helloao-browser";
 import { hotkeysFor, openHotkeySettings } from "./hotkeys";
 import { parseReference } from "./reference";
 import { DEFAULT_SETTINGS, Preset, sortByOrder } from "./settings";
-import { BUILT_IN_TRANSLATIONS, LANGS, Translation } from "./sources";
+import { BUILT_IN_TRANSLATIONS, isCopyrighted, LANGS, Translation } from "./sources";
 
 const SUPPORT_URL = "https://buymeacoffee.com/4h9fg59wsgd";
 /** Default vault folder that imported Bible JSON files are copied into. */
@@ -287,7 +287,47 @@ export class VersedropSettingTab extends PluginSettingTab {
 		const list = this.orderedTranslations();
 		const linkShown = (kind: "logos" | "accordance") => s.appLinks === kind || s.appLinks === "both";
 
+		const all = this.plugin.allTranslations();
+		const insertList = s.picked.map((id) => all.find((tr) => tr.id === id)).filter((tr): tr is Translation => !!tr);
+
 		return [
+			// ── Insert these (default translations) ──────────────────
+			{
+				type: "list",
+				heading: t.sInsertList,
+				emptyState: t.sInsertListEmpty,
+				items: insertList.map((tr) => ({
+					name: tr.name,
+					desc: `${langLabel(tr.lang, tr.langLabel)}${tr.abbr && tr.abbr !== tr.name ? ` · ${tr.abbr}` : ""}`,
+					aliases: [tr.abbr, tr.code ?? ""].filter(Boolean),
+				})),
+				onReorder: (from, to) => {
+					const ids = insertList.map((tr) => tr.id);
+					const [moved] = ids.splice(from, 1);
+					ids.splice(to, 0, moved);
+					s.picked = ids;
+					void this.saveAndRebuild();
+				},
+				onDelete: (index) => {
+					const id = insertList[index]?.id;
+					s.picked = s.picked.filter((x) => x !== id);
+					void this.saveAndRebuild();
+				},
+				addItem: { name: t.sInsertAdd, action: (el) => this.openPickMenu(el) },
+			},
+			// ── Search window ────────────────────────────────────────
+			{
+				type: "group",
+				heading: t.sSearchWindow,
+				items: [
+					{
+						name: t.sSearchMode,
+						desc: t.sSearchModeDesc,
+						aliases: ["insert", "삽입", "바로", "preview"],
+						control: { type: "dropdown", key: "searchMode", options: { preview: t.sModePreview, instant: t.sModeInstant } },
+					},
+				],
+			},
 			// ── My translations ──────────────────────────────────────
 			{
 				type: "list",
@@ -505,23 +545,15 @@ export class VersedropSettingTab extends PluginSettingTab {
 						? `JSON ${tr.path ?? ""}`
 						: `Accordance ${tr.module ?? ""}`;
 		const name = custom ? tr.name || t.sUnnamed : `${tr.name}${tr.abbr !== tr.name ? ` (${tr.abbr})` : ""}`;
-		const desc = custom ? `${lang} · ${kind.trim()}` : `${lang} · ${tr.note ?? ""}`;
+		// One short line: language · where it comes from (the long notes live in the + menu).
+		const origin = custom ? kind.trim() : isCopyrighted(tr) ? t.sOriginCopyrighted : t.sOriginBuiltIn;
+		const desc = `${lang} · ${origin}${s.picked.includes(tr.id) ? ` · ${t.sInInsertList}` : ""}`;
 
 		return {
 			name,
 			desc,
 			aliases: [tr.abbr, tr.code ?? "", tr.module ?? ""].filter(Boolean),
 			render: (setting) => {
-				const on = s.picked.includes(tr.id);
-				setting.addExtraButton((x) =>
-					x
-						.setIcon(on ? "check-square" : "square")
-						.setTooltip(t.sDefaultPick)
-						.onClick(() => {
-							s.picked = on ? s.picked.filter((p) => p !== tr.id) : [...s.picked, tr.id];
-							void this.saveAndRebuild();
-						}),
-				);
 				if (custom) {
 					setting.addExtraButton((x) =>
 						x
@@ -550,6 +582,24 @@ export class VersedropSettingTab extends PluginSettingTab {
 		s.picked = s.picked.filter((id) => id !== tr.id);
 		s.order = s.order.filter((id) => id !== tr.id);
 		await this.saveAndRebuild();
+	}
+
+	/** Menu of "My translations" not yet in "Insert these". */
+	private openPickMenu(el: HTMLElement): void {
+		const s = this.plugin.settings;
+		const rest = this.orderedTranslations().filter((tr) => !s.picked.includes(tr.id));
+		const menu = new Menu();
+		if (!rest.length) menu.addItem((i) => i.setTitle(t.sInsertAllAdded).setDisabled(true));
+		for (const tr of rest) {
+			menu.addItem((i) =>
+				i.setTitle(`${tr.name} · ${langLabel(tr.lang, tr.langLabel)}`).onClick(() => {
+					s.picked = [...s.picked, tr.id];
+					void this.saveAndRebuild();
+				}),
+			);
+		}
+		const r = el.getBoundingClientRect();
+		menu.showAtPosition({ x: r.left, y: r.bottom });
 	}
 
 	/** Menu of built-in translations not yet added, grouped by language, then ways to add your own. */

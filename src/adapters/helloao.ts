@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { BOOKS, BookInfo } from "../books";
+import { toSimplified } from "../text";
 import { t } from "../i18n";
 import type { Translation } from "../sources";
 import { cleanText, Verse } from "../text";
@@ -168,6 +169,8 @@ export async function translationFromHelloAo(entry: HelloAoTranslation): Promise
 		deutero: books.some((b) => BOOKS.some((x) => x.deutero && x.usfm === b.id)) || undefined,
 		bookNames: Object.keys(bookNames).length ? bookNames : undefined,
 		dir: entry.textDirection,
+		// Chinese: show book names in the translation's own script
+		script: toLang(entry.language) === "zh" ? (toSimplified(entry.name) !== entry.name ? "traditional" : "simplified") : undefined,
 	};
 }
 

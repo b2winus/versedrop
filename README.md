@@ -4,7 +4,7 @@ Search a Bible reference and drop the passage into your note — from free trans
 
 성경 구절을 검색해서 노트에 바로 넣어 주는 Obsidian 플러그인입니다. 영어·한국어는 물론 독일어·프랑스어·스페인어·중국어·헬라어·히브리어 등 1,000개가 넘는 언어의 무료 역본을 골라서, 또는 여러 역본을 함께 넣을 수 있어요.
 
-**[English](#english)** · **[한국어](#한국어)**
+**[English](#english)** · **[한국어](#한국어)** · **[中文](#中文)**
 
 ```markdown
 > [!quote] 요한복음 3:16 (개역한글)
@@ -53,7 +53,7 @@ Search a Bible reference and drop the passage into your note — from free trans
 - **Backup source:** if bolls.life is unreachable, built-in public-domain texts (KJV, WEB, BSB …) are fetched from HelloAO instead
 - Add any translation from bolls.life by code, or from a JSON file in your vault
 - Callout, blockquote or plain text output, with options for verse numbers, line breaks and bilingual grouping
-- Interface and built-in help in Korean and English, following Obsidian's language setting
+- Interface and built-in help in English, Korean and Chinese (simplified and traditional), following Obsidian's language setting
 
 ## Installation
 
@@ -104,10 +104,11 @@ A reference can cover up to 10 chapters (each chapter is a separate download). W
 ## The search window
 
 - **Search box** — type a reference and press <kbd>Enter</kbd>.
-- **Language chips** — one chip per language in *My translations* (English, Korean, German, French, Greek …). Click to turn languages on or off; **All** shows every language. Your choice is remembered next time.
-- Greek texts contain only the New Testament and Hebrew WLC only the Old Testament, so their cards appear only when the book is in them.
-- **Translation cards** — one card per enabled translation, showing the text with verse numbers. The checkbox on each card decides whether it is inserted. Checked cards are highlighted, and your choices are remembered next time.
-- **Insert** — inserts every checked card that loaded successfully. Shortcut: <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
+- **Translation cards** — one card for each translation in **Insert these** (Settings), ticked and in that order. Untick a card to leave it out this time.
+- **Other translations** — the rest of *My translations* stay folded here and load only when you open it, with language chips (English, Korean, German, Greek …) to narrow the list. Ticking one adds it to this insertion only; your defaults change only in settings.
+- Greek texts contain only the New Testament and Hebrew WLC only the Old Testament. If none of your translations to insert has the book, the other translations open automatically.
+- **Insert** — inserts every ticked card that loaded successfully. Shortcut: <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
+- **Insert right away** — set *Search window → After finding a passage* to **Insert right away** to skip the preview: <kbd>Enter</kbd> inserts your translations to insert immediately.
 
 Cards load independently, so a slow or failing translation never blocks the others. If a card shows an error, the message explains what to do.
 
@@ -122,7 +123,7 @@ Settings → Versedrop → **Hotkeys and presets** lists every Versedrop command
 | Command | What it does |
 |---|---|
 | **Search and insert Bible passage** | Opens the search window (pre-filled when the cursor is on a reference) |
-| **Insert in default translations (no window)** | Inserts the reference at the cursor in your ☑ default translations straight away — the fastest way to fill an outline. Opens the search window if there is no reference. |
+| **Insert in default translations (no window)** | Inserts the reference at the cursor in your translations to insert straight away — the fastest way to fill an outline. Opens the search window if there is no reference. |
 | **Preset: …** | One command per preset (see below) |
 
 **Presets** are named sets of translations you use together — for example *Korean–English* (개역한글 + ESV) or *Original languages* (SBLGNT + WLC). Click **Add preset**, name it, and click the translation chips to include. Each preset becomes its own command, so it can have its own hotkey:
@@ -139,15 +140,16 @@ Suggested setup: <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> for the search win
 | Korean | 개역한글 (KRV, 1961) | bolls.life | Copyright term expired | ✓ |
 | Korean | 새번역 (RNKSV) | bolls.life | © Korean Bible Society — personal study only | — |
 | English | King James Version (KJV) | bolls.life | Public domain | ✓ |
-| English | World English Bible (WEB) | bolls.life | Public domain | ✓ |
+| English | World English Bible (WEB) | bolls.life | Public domain | — |
 | English | Berean Standard Bible (BSB) | bolls.life | Public domain | ✓ |
 | English | New English Translation (NET) | NET Bible API | © Biblical Studies Press — free quotation with notice | ✓ |
-| English | English Standard Version (ESV) | ESV API | © Crossway — needs your free API key | ✓ (once a key is set) |
-| English | American Standard Version (ASV) | bolls.life | Public domain | ✓ |
-| English | Young's Literal Translation (YLT) | bolls.life | Public domain | ✓ |
+| English | English Standard Version (ESV) | ESV API | © Crossway — needs your free API key | — |
+| English | American Standard Version (ASV) | bolls.life | Public domain | — |
+| English | Young's Literal Translation (YLT) | bolls.life | Public domain | — |
 | English | Literal Standard Version (LSV) | bolls.life | CC BY-SA 4.0 | — |
 | English | Geneva Bible 1599 (GNV) | bolls.life | Public domain | — |
 | English | Douay-Rheims (DRB) | bolls.life | Public domain | — |
+| Chinese | 和合本（简体） (CUV, 1919, simplified) | bolls.life, converted on your device | Public domain | — |
 | Chinese | 和合本 (CUV, 1919, traditional) | bolls.life | Public domain | — |
 | Japanese | 口語訳 (1954/55) | bolls.life | Out of copyright in Japan | — |
 | Greek | SBL Greek New Testament (SBLGNT) | bolls.life | © 2010 SBL & Logos — free with attribution · NT | — |
@@ -161,10 +163,11 @@ Suggested setup: <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> for the search win
 
 Add them from the **Add a translation** (+) menu (each language has its own group), and a chip for that language appears in the search window.
 
-- **Book names in headers** follow the language: 約翰福音 3:16 (traditional, 和合本), ヨハネによる福音書 3:16 (口語訳). Greek and Hebrew texts use English book names, as in academic writing.
+- **和合本（简体）** is the public-domain 1919 和合本 with its characters converted from traditional to simplified on your device (OpenCC); the wording is unchanged.
+- **Book names in headers** follow the language: 约翰福音 3:16 (和合本（简体）), 約翰福音 3:16 (traditional, 和合本), ヨハネによる福音書 3:16 (口語訳). Greek and Hebrew texts use English book names, as in academic writing.
 - **Hebrew** cards are shown right-to-left. Hebrew versification sometimes differs from English Bibles (e.g. psalm titles counted as verse 1, Malachi 4 = Malachi 3:19–24), so check the verse number if a Hebrew card looks off by one.
 - **SBLGNT** always gets its required notice.
-- **Copyrighted editions** — 新标点和合本 (simplified), 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — are not built in. If you own them in Accordance, add them as Accordance modules; Versedrop recognises them and adds the right copyright notice. (They can also be added by bolls.life code at your own discretion, e.g. `CUNPS`, `JPNICT`.)
+- **Copyrighted editions** — 新标点和合本, 和合本修订版, 新译本, 当代译本, 中文标准译本, 现代中文译本, 吕振中译本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — are not built in. If you own them in Accordance, add them as Accordance modules; Versedrop recognises them and adds the right copyright notice. (They can also be added by bolls.life code at your own discretion, e.g. `CUNPS`, `JPNICT`.)
 
 ### Deuterocanonical books
 
@@ -187,11 +190,13 @@ Tobit, Judith, Wisdom, Sirach, Baruch, 1–2 Maccabees and the Greek additions t
 
 ### Choosing your translations
 
-Settings → *My translations* lists only the translations you use — the ones ticked "On by default" above to start with.
+Settings starts with two lists:
+
+- **Insert these** — the translations inserted when you find a passage, in this order. Drag to reorder, delete to take one out, **+** to add one from *My translations*.
+- **My translations** — every translation you use, each with one short line (language · where it comes from). Translations not in *Insert these* still appear under *Other translations* in the search window. A new install starts with 개역한글, KJV, BSB and NET.
 
 - **Add a translation** — click **+** in the list header and pick one. The menu is grouped by language, with *Add your own* (Accordance module, bolls.life code, JSON file) at the end.
-- ☑ — selected for insertion by default
-- drag — change the order; translations appear in this order in the search window and in your notes
+- drag — change the order in this list
 - ✎ — edit a translation you added yourself (name, code/module/path, language, copyright notice)
 - delete — remove it from the list (built-ins can be added back from the + menu any time)
 
@@ -418,7 +423,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - **예비 소스:** bolls.life에 접속이 안 되면 기본 공개 역본(KJV, WEB, BSB 등)을 HelloAO에서 대신 가져와요
 - bolls.life 역본 코드나 볼트 안 JSON 파일로 역본 추가
 - 콜아웃·인용문·일반 텍스트 형식, 절 번호, 줄바꿈, 한영 병기 묶기 옵션
-- Obsidian 언어 설정에 따라 한국어/영어 화면과 도움말 제공
+- Obsidian 언어 설정에 따라 한국어·영어·중국어(간체·번체) 화면과 도움말 제공
 
 ## 설치하기
 
@@ -469,10 +474,11 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 ## 검색 창 사용법
 
 - **검색창** — 구절을 입력하고 <kbd>Enter</kbd>.
-- **언어 버튼** — *내 역본*에 있는 언어마다 버튼이 생겨요(한국어, 영어, 독일어, 프랑스어, 헬라어 …). 눌러서 켜고 끄고, **전체**를 누르면 모든 언어가 보여요. 고른 언어는 다음에도 그대로 유지돼요.
-- 헬라어 역본은 신약만, 히브리어 WLC는 구약만 들어 있어서, 그 책이 있는 경우에만 카드가 나타나요.
-- **역본 카드** — 켜 둔 역본마다 카드가 하나씩 생기고, 절 번호와 함께 본문이 보여요. 카드의 체크박스로 삽입할지 정합니다. 체크한 카드는 강조 표시되고, 선택은 다음번에도 그대로 유지돼요.
-- **삽입** — 체크했고 정상적으로 불러온 카드를 모두 넣습니다. 단축키는 <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
+- **역본 카드** — 설정의 **넣을 역본**마다 카드가 하나씩, 그 순서대로 체크된 채 나와요. 이번에만 빼고 싶으면 체크를 풀면 돼요.
+- **다른 역본 보기** — 나머지 *내 역본*은 여기 접혀 있다가 열 때만 불러와요. 언어 버튼(한국어, 영어, 독일어, 헬라어 …)으로 좁혀 볼 수 있어요. 여기서 체크한 역본은 이번 삽입에만 들어가고, 기본 설정은 바뀌지 않아요.
+- 헬라어 역본은 신약만, 히브리어 WLC는 구약만 들어 있어요. 넣을 역본 중에 그 책이 있는 역본이 없으면 다른 역본이 자동으로 펼쳐져요.
+- **삽입** — 체크했고 정상적으로 불러온 카드를 모두 넣어요. 단축키는 <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd>.
+- **바로 넣기** — 설정 → *검색 창 → 구절을 찾은 뒤*를 **바로 넣기**로 바꾸면 미리 보기 없이 <kbd>Enter</kbd> 한 번에 넣을 역본으로 바로 들어가요.
 
 카드는 각각 따로 불러오기 때문에, 한 역본이 느리거나 오류가 나도 다른 역본에는 영향이 없어요. 오류가 나면 카드에 해결 방법이 함께 표시됩니다.
 
@@ -487,13 +493,13 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 | 명령 | 하는 일 |
 |---|---|
 | **성경 구절 검색해서 삽입** | 검색 창을 열어요 (커서가 구절 위에 있으면 자동 검색) |
-| **기본 역본으로 바로 삽입 (창 없이)** | 커서가 있는 구절을 ☑ 기본 선택 역본으로 창 없이 바로 넣어요. 설교 개요를 채울 때 가장 빨라요. 구절이 없으면 검색 창이 열려요. |
+| **기본 역본으로 바로 삽입 (창 없이)** | 커서가 있는 구절을 넣을 역본으로 창 없이 바로 넣어요. 설교 개요를 채울 때 가장 빨라요. 구절이 없으면 검색 창이 열려요. |
 | **프리셋: …** | 프리셋마다 하나씩 생기는 명령 (아래 참고) |
 
 **프리셋**은 함께 쓰는 역본 조합에 이름을 붙인 거예요. 예: *한영 대조*(개역한글 + ESV), *원어 대조*(SBLGNT + WLC). **프리셋 추가**를 누르고 이름을 적은 뒤, 넣을 역본 버튼을 눌러 고르세요. 프리셋마다 명령이 따로 생겨서 단축키도 따로 지정할 수 있어요.
 
 - 구절 위에서 실행하면 → 프리셋 역본으로 바로 넣고,
-- 그 밖의 곳에서 실행하면 → 프리셋 역본이 선택된 검색 창이 열려요 (평소 기본 선택은 바뀌지 않아요).
+- 그 밖의 곳에서 실행하면 → 프리셋 역본이 선택된 검색 창이 열려요 (평소 넣을 역본은 바뀌지 않아요).
 
 추천 설정: 검색 창은 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>, 창 없이 바로 삽입은 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>, *원어 대조* 프리셋은 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>. (이미 쓰는 키인지 확인하세요. 겹치면 단축키 화면에서 알려 줘요.)
 
@@ -504,15 +510,16 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 | 한국어 | 개역한글 (1961) | bolls.life | 저작권 보호기간 만료 | ✓ |
 | 한국어 | 새번역 | bolls.life | © 대한성서공회 — 개인 묵상·연구용 | — |
 | 영어 | King James Version (KJV) | bolls.life | 퍼블릭 도메인 | ✓ |
-| 영어 | World English Bible (WEB) | bolls.life | 퍼블릭 도메인 | ✓ |
+| 영어 | World English Bible (WEB) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Berean Standard Bible (BSB) | bolls.life | 퍼블릭 도메인 | ✓ |
 | 영어 | New English Translation (NET) | NET Bible 공식 API | © Biblical Studies Press — 출처 표기 시 무료 인용 | ✓ |
-| 영어 | English Standard Version (ESV) | ESV 공식 API | © Crossway — 개인 무료 API 키 필요 | ✓ (키 입력 후) |
-| 영어 | American Standard Version (ASV) | bolls.life | 퍼블릭 도메인 | ✓ |
-| 영어 | Young's Literal Translation (YLT) | bolls.life | 퍼블릭 도메인 | ✓ |
+| 영어 | English Standard Version (ESV) | ESV 공식 API | © Crossway — 개인 무료 API 키 필요 | — |
+| 영어 | American Standard Version (ASV) | bolls.life | 퍼블릭 도메인 | — |
+| 영어 | Young's Literal Translation (YLT) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Literal Standard Version (LSV) | bolls.life | CC BY-SA 4.0 | — |
 | 영어 | Geneva Bible 1599 (GNV) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Douay-Rheims (DRB) | bolls.life | 퍼블릭 도메인 | — |
+| 중국어 | 和合本（简体） (CUV, 1919, 간체) | bolls.life, 기기에서 변환 | 퍼블릭 도메인 | — |
 | 중국어 | 和合本 (CUV, 1919, 번체) | bolls.life | 퍼블릭 도메인 | — |
 | 일본어 | 口語訳 (1954/55) | bolls.life | 일본에서 저작권 보호기간 만료 | — |
 | 헬라어 | SBL Greek New Testament (SBLGNT) | bolls.life | © 2010 SBL & Logos — 출처 표기 시 무료 · 신약 | — |
@@ -526,10 +533,11 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 **역본 추가**(+) 메뉴에서 언어별 묶음으로 고르면 추가되고, 검색 창에 그 언어 버튼이 생겨요.
 
-- **제목의 책 이름**은 역본 언어를 따라가요: 約翰福音 3:16 (和合本, 번체), ヨハネによる福音書 3:16 (口語訳). 헬라어·히브리어 원문은 학술 관례대로 영어 책 이름을 써요.
+- **和合本（简体）**은 퍼블릭 도메인인 1919년 和合本의 번체 글자를 기기에서 간체로 바꾼 것이에요(OpenCC). 본문 내용은 그대로예요.
+- **제목의 책 이름**은 역본 언어를 따라가요: 约翰福音 3:16 (和合本（简体）), 約翰福音 3:16 (和合本, 번체), ヨハネによる福音書 3:16 (口語訳). 헬라어·히브리어 원문은 학술 관례대로 영어 책 이름을 써요.
 - **히브리어** 카드는 오른쪽에서 왼쪽으로 표시돼요. 히브리어 성경은 절 구분이 한국어·영어 성경과 다른 곳이 있어요(예: 시편 표제가 1절로 셈, 말라기 4장 = 말라기 3:19–24). 히브리어 카드가 한 절씩 어긋나 보이면 절 번호를 확인해 보세요.
 - **SBLGNT**는 이용 조건에 따라 출처 문구가 항상 붙어요.
-- **저작권 판본** — 新标点和合本(간체), 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — 은 기본으로 넣지 않았어요. Accordance에 가지고 계시면 Accordance 모듈로 추가하세요. Versedrop이 알아보고 맞는 출처 문구를 자동으로 붙여요. (bolls.life 코드 `CUNPS`, `JPNICT` 등으로 직접 추가할 수도 있지만 저작권은 직접 확인해 주세요.)
+- **저작권 판본** — 新标点和合本, 和合本修订版, 新译本, 当代译本, 中文标准译本, 现代中文译本, 吕振中译本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS — 은 기본으로 넣지 않았어요. Accordance에 가지고 계시면 Accordance 모듈로 추가하세요. Versedrop이 알아보고 맞는 출처 문구를 자동으로 붙여요. (bolls.life 코드 `CUNPS`, `JPNICT` 등으로 직접 추가할 수도 있지만 저작권은 직접 확인해 주세요.)
 
 ### 외경(제2경전)
 
@@ -552,11 +560,13 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ### 내 역본 고르기
 
-설정 → *내 역본*에는 내가 쓰는 역본만 보여요. 처음에는 위 표에서 "기본 켜짐"이 ✓인 역본들이 들어 있어요.
+설정 맨 위에는 목록이 두 개 있어요.
+
+- **넣을 역본** — 구절을 찾으면 넣을 역본이에요. 이 순서대로 들어가요. 끌어서 순서를 바꾸고, 삭제로 빼고, **+** 로 *내 역본*에서 골라 더해요.
+- **내 역본** — 내가 쓰는 역본 전체예요. 역본마다 한 줄(언어 · 가져오는 곳)만 보여요. *넣을 역본*에 없는 역본도 검색 창의 *다른 역본 보기*에서 쓸 수 있어요. 처음 설치하면 개역한글, KJV, BSB, NET이 들어 있어요.
 
 - **역본 추가** — 목록 머리의 **+** 를 눌러 고르면 바로 추가돼요. 한국어, English, *직접 추가*(Accordance 모듈, bolls.life 코드, JSON 파일)로 묶여 있어요.
-- ☑ — 처음부터 삽입 대상으로 선택
-- 끌어서 순서 바꾸기 — 이 순서대로 검색 창과 노트에 들어가요.
+- 끌어서 순서 바꾸기 — 이 목록의 순서를 바꿔요.
 - ✎ — 직접 추가한 역본 편집 (이름, 코드/모듈/경로, 언어, 출처 문구)
 - 삭제 — 목록에서 빼기 (기본 역본은 언제든 + 메뉴에서 다시 추가할 수 있어요)
 
@@ -755,6 +765,36 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 ---
 
+# 中文
+
+Versedrop 是一个 Obsidian 插件：输入经文出处，就能把经文插入笔记。界面会跟随 Obsidian 的语言设置显示简体中文或繁体中文。
+
+**快速开始**
+
+1. 设置 → 第三方插件 → 浏览，搜索 **Versedrop** 并安装、启用（或手动把 `main.js`、`manifest.json`、`styles.css` 放进 `<仓库>/.obsidian/plugins/versedrop/`）。
+2. 在命令面板（<kbd>Cmd/Ctrl</kbd>+<kbd>P</kbd>）运行 **搜索并插入经文**，或在 设置 → Versedrop → 快捷键与预设 中设置快捷键。
+3. 输入 `约3:16`，按 <kbd>Enter</kbd>，勾选译本后按 <kbd>Cmd/Ctrl</kbd>+<kbd>Enter</kbd> 插入。
+
+**经文出处的写法**
+
+| 想要的 | 例子 |
+|---|---|
+| 一节 | `约3:16` · `约翰福音 3:16` · `約翰福音3章16節` · `John 3:16` |
+| 连续几节 | `林前13:4-7` · `1 Cor 13:4-7` |
+| 不连续的几节 | `罗8:28, 31-39` |
+| 整章 | `诗23` · `诗篇 23篇` |
+| 跨章 | `约3:16-4:3` · `创1-2` |
+| 次经 | `多俾 3:1` · `德训篇 1:1` · `加上 2:3` |
+
+**中文译本**
+
+- 内置：**和合本（简体）** 和 **和合本（繁体）**——都是 1919 年出版的公版和合本。简体版是在你的设备上把繁体字转换成简体（OpenCC），经文本身没有改动。在 设置 → Versedrop → 我的译本 → + 的“中文”分组中添加。
+- **新标点和合本、和合本修订版、新译本、当代译本、中文标准译本、现代中文译本、吕振中译本、思高译本** 等受版权保护，不能内置。如果你在 Accordance（Mac）中拥有这些模块，可以作为 Accordance 模块添加，Versedrop 会自动加上正确的版权声明。
+- **在 HelloAO 查找译本**（+ 菜单）中点“中文”，可以浏览可以免费使用的中文译本，一键添加。
+- 也可以导入你有权使用的圣经 JSON 文件（+ → 从 JSON 文件添加…）。
+
+更详细的说明（输出格式、链接、预设、JSON 格式等）请看插件设置底部的“帮助”，或上面的 [English](#english) 部分。
+
 ## Support / 후원
 
 If Versedrop helps your study or sermon preparation, you can support its development:
@@ -772,7 +812,7 @@ npm run build   # type-check + production build
 
 ## Credits
 
-Bible text API by [Bolls Bible](https://github.com/Bolls-Bible/bain). Translations remain the property of their respective copyright holders.
+Bible text API by [Bolls Bible](https://github.com/Bolls-Bible/bain). Translations remain the property of their respective copyright holders. Traditional → simplified Chinese conversion by [opencc-js](https://github.com/nk2028/opencc-js) (MIT), using [OpenCC](https://github.com/BYVoid/OpenCC) dictionaries (Apache-2.0).
 
 ## License
 

@@ -1,4 +1,6 @@
 import { getLanguage } from "obsidian";
+import { zhCN } from "./i18n-zh";
+import { zhTW } from "./i18n-zh-tw";
 
 export interface HelpTopic {
 	title: string;
@@ -9,13 +11,13 @@ const ko = {
 	cmdInsert: "성경 구절 검색해서 삽입",
 	cmdDirect: "기본 역본으로 바로 삽입 (창 없이)",
 	cmdPreset: (name: string) => `프리셋: ${name}`,
-	directNone: "이 구절이 들어 있는 기본 선택 역본이 없어요. 설정에서 ☑ 기본 선택을 확인해 주세요.",
+	directNone: "넣을 역본 중에 이 구절이 들어 있는 역본이 없어요. 설정의 '넣을 역본'을 확인해 주세요.",
 	directFailed: (names: string) => `가져오지 못한 역본: ${names}`,
 	hotkeyFallback: "설정 → 단축키에서 'Versedrop'을 검색해 단축키를 지정해 주세요.",
 	sHotkeys: "단축키와 프리셋",
 	sHotkeysDesc: "명령마다 단축키를 지정할 수 있어요. '단축키 지정'을 누르면 Obsidian 단축키 화면이 Versedrop만 걸러서 열려요. 그곳에서 + 를 누르고 원하는 키를 누르면 끝!",
 	sCmdInsertDesc: "검색 창을 열어요. 커서가 있는 줄이나 선택한 글자가 구절이면 자동으로 검색해요.",
-	sCmdDirectDesc: "선택한 구절(또는 커서가 있는 줄의 구절)을 ☑ 기본 선택 역본으로 창 없이 바로 넣어요. 구절이 없으면 검색 창이 열려요.",
+	sCmdDirectDesc: "선택한 구절(또는 커서가 있는 줄의 구절)을 넣을 역본으로 창 없이 바로 넣어요. 구절이 없으면 검색 창이 열려요.",
 	sNoHotkey: "지정 안 됨",
 	sSetHotkey: "단축키 지정",
 	sChangeHotkey: "바꾸기",
@@ -42,7 +44,7 @@ const ko = {
 	noVerses: "해당 구절이 이 역본에 없어요.",
 	noneSelected: "삽입할 역본을 하나 이상 선택해 주세요.",
 	noTranslations: "이 언어로 켜져 있는 역본이 없어요. 설정에서 역본을 켜 주세요.",
-	hint: "Enter 검색 · Ctrl/Cmd+Enter 삽입",
+	hint: "Enter 검색 · Ctrl/Cmd+Enter 넣기",
 	errFormat: "구절 형식을 알 수 없어요. 예: 요 3:16, John 3:16-18",
 	errBook: (b: string) => `'${b}'에 해당하는 책을 찾지 못했어요.`,
 	errChapter: "장 번호가 올바르지 않아요.",
@@ -128,8 +130,25 @@ const ko = {
 	sName: "이름",
 	sNamePlaceholder: "예: 개역개정",
 	sLang: "언어",
+	sInsertList: "넣을 역본",
+	sInsertListEmpty: "구절을 찾으면 넣을 역본이 아직 없어요. + 를 눌러 '내 역본'에서 골라 주세요.",
+	sInsertAdd: "넣을 역본 추가",
+	sInsertAllAdded: "내 역본이 모두 들어 있어요",
+	sInInsertList: "넣을 역본",
+	sOriginBuiltIn: "기본 제공",
+	sOriginCopyrighted: "기본 제공 · 저작권 역본",
+	sSearchWindow: "검색 창",
+	sSearchMode: "구절을 찾은 뒤",
+	sSearchModeDesc: "'미리 보고 넣기'는 넣을 역본만 보여 주고 Ctrl/Cmd+Enter로 넣어요. 다른 역본은 '다른 역본 보기'를 열어 그때만 골라요. '바로 넣기'는 Enter 한 번에 넣을 역본으로 바로 넣어요.",
+	sModePreview: "미리 보고 넣기",
+	sModeInstant: "바로 넣기",
+	hintInstant: "Enter 바로 넣기",
+	othersShow: (n: number) => `다른 역본 보기 (${n})`,
+	othersHide: "다른 역본 접기",
+	pickedNoBook: "넣을 역본에는 이 책이 없어서 다른 역본을 보여 드려요.",
+	pickedEmpty: "설정에서 '넣을 역본'을 정하면 매번 고르지 않아도 돼요.",
 	sMyTranslations: "내 역본",
-	sMyTranslationsDesc: "검색 창에 나올 역본이에요. ☑ 기본으로 선택 · 끌어서 순서 바꾸기 · ✎ 편집 · 삭제로 빼기. + 로 추가해요.",
+	sMyTranslationsDesc: "검색 창에 나올 역본이에요. 끌어서 순서 바꾸기 · ✎ 편집 · 삭제로 빼기. + 로 추가해요.",
 	sNoTranslations: "아직 역본이 없어요. + 를 눌러 추가해 주세요.",
 	sUnnamed: "(이름 없음)",
 	sMoveUp: "위로",
@@ -280,17 +299,17 @@ const ko = {
 			title: "단축키와 프리셋",
 			paras: [
 				"위의 '단축키와 프리셋'에서 '단축키 지정'을 누르면 Obsidian 단축키 화면이 Versedrop 명령만 걸러서 열려요. 명령 옆 + 를 누르고 원하는 키를 누르면 돼요.",
-				"'기본 역본으로 바로 삽입 (창 없이)'은 커서가 있는 줄(또는 선택한 글자)의 구절을 ☑ 기본 선택 역본으로 곧바로 넣어요. 개요에 구절만 적어 두고 하나씩 채울 때 편해요.",
+				"'기본 역본으로 바로 삽입 (창 없이)'은 커서가 있는 줄(또는 선택한 글자)의 구절을 넣을 역본으로 곧바로 넣어요. 개요에 구절만 적어 두고 하나씩 채울 때 편해요.",
 				"프리셋은 자주 쓰는 역본 조합이에요(예: 한영 대조, 원어 대조). 프리셋마다 명령이 생겨서 단축키를 따로 지정할 수 있고, 구절 위에서 실행하면 바로 넣고 아니면 그 역본들이 선택된 검색 창이 열려요.",
 			],
 		},
 		{
 			title: "중국어·일본어·헬라어·히브리어",
 			paras: [
-				"'역본 추가'(+) 메뉴의 언어별 묶음에서 和合本(번체), 口語訳, SBLGNT·Textus Receptus·Tischendorf(헬라어 신약), WLC·Delitzsch(히브리어)를 추가할 수 있어요. 추가하면 검색 창에 그 언어 버튼이 생겨요.",
+				"'역본 추가'(+) 메뉴의 언어별 묶음에서 和合本(간체·번체), 口語訳, SBLGNT·Textus Receptus·Tischendorf(헬라어 신약), WLC·Delitzsch(히브리어)를 추가할 수 있어요. 추가하면 검색 창에 그 언어 버튼이 생겨요.",
 				"중국어·일본어 책 이름으로도 검색할 수 있어요. 예: 约翰福音 3:16, 約3:16, ヨハ3章16節, 林前13:4-7.",
 				"헬라어 역본은 신약만, 히브리어 WLC는 구약만 있어서 그 책이 있을 때만 카드가 나와요. 히브리어 성경은 절 구분이 다른 곳이 있으니(시편 표제, 말라기 4장 등) 절 번호를 확인해 주세요.",
-				"新标点和合本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS 같은 저작권 판본은 Accordance 모듈로 추가하면 출처 문구가 자동으로 붙어요.",
+				"新标点和合本, 和合本修订版, 新译本, 当代译本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX, BHS 같은 저작권 판본은 Accordance 모듈로 추가하면 출처 문구가 자동으로 붙어요.",
 			],
 		},
 		{
@@ -307,13 +326,13 @@ const en: typeof ko = {
 	cmdInsert: "Search and insert Bible passage",
 	cmdDirect: "Insert in default translations (no window)",
 	cmdPreset: (name: string) => `Preset: ${name}`,
-	directNone: "None of your default-picked translations contain this passage. Check ☑ in settings.",
+	directNone: "None of the translations in Insert these contain this passage. Check 'Insert these' in settings.",
 	directFailed: (names: string) => `Couldn't load: ${names}`,
 	hotkeyFallback: "Open Settings → Hotkeys and search for 'Versedrop' to set a hotkey.",
 	sHotkeys: "Hotkeys and presets",
 	sHotkeysDesc: "Each command can have its own hotkey. 'Set hotkey' opens Obsidian's Hotkeys screen filtered to Versedrop — click + and press the keys you want.",
 	sCmdInsertDesc: "Opens the search window. If the selection or the cursor's line is a reference, it is searched automatically.",
-	sCmdDirectDesc: "Inserts the selected reference (or the one on the cursor's line) in your ☑ default translations without opening a window. Opens the search window if there is no reference.",
+	sCmdDirectDesc: "Inserts the selected reference (or the one on the cursor's line) in the translations in Insert these without opening a window. Opens the search window if there is no reference.",
 	sNoHotkey: "Not set",
 	sSetHotkey: "Set hotkey",
 	sChangeHotkey: "Change",
@@ -424,8 +443,25 @@ const en: typeof ko = {
 	sName: "Name",
 	sNamePlaceholder: "e.g. NIV",
 	sLang: "Language",
+	sInsertList: "Insert these",
+	sInsertListEmpty: "No translations to insert yet. Click + to choose from My translations.",
+	sInsertAdd: "Add a translation to insert",
+	sInsertAllAdded: "All your translations are already in the list",
+	sInInsertList: "inserted",
+	sOriginBuiltIn: "built in",
+	sOriginCopyrighted: "built in · copyrighted",
+	sSearchWindow: "Search window",
+	sSearchMode: "After finding a passage",
+	sSearchModeDesc: "'Preview, then insert' shows only the translations in Insert these; press Ctrl/Cmd+Enter to insert. Other translations stay folded under 'Other translations' until you open them. 'Insert right away' inserts Insert these as soon as you press Enter.",
+	sModePreview: "Preview, then insert",
+	sModeInstant: "Insert right away",
+	hintInstant: "Enter to insert right away",
+	othersShow: (n: number) => `Other translations (${n})`,
+	othersHide: "Hide other translations",
+	pickedNoBook: "none of the translations to insert have this book, so others are shown.",
+	pickedEmpty: "set 'Insert these' in settings to skip choosing every time.",
 	sMyTranslations: "My translations",
-	sMyTranslationsDesc: "Translations shown in the search window. ☑ pick by default · drag to reorder · ✎ edit · delete to remove. Add with +.",
+	sMyTranslationsDesc: "Translations shown in the search window. drag to reorder · ✎ edit · delete to remove. Add with +.",
 	sNoTranslations: "No translations yet. Click + to add one.",
 	sUnnamed: "(unnamed)",
 	sMoveUp: "Move up",
@@ -576,17 +612,17 @@ const en: typeof ko = {
 			title: "Hotkeys and presets",
 			paras: [
 				"In 'Hotkeys and presets' above, 'Set hotkey' opens Obsidian's Hotkeys screen filtered to Versedrop. Click + next to a command and press the keys you want.",
-				"'Insert in default translations (no window)' inserts the reference on the cursor's line (or the selection) in your ☑ default translations straight away — handy for filling an outline.",
+				"'Insert in default translations (no window)' inserts the reference on the cursor's line (or the selection) in the translations in Insert these straight away — handy for filling an outline.",
 				"Presets are translation sets you use together (e.g. Korean–English, Original languages). Each gets its own command and hotkey: on a reference it inserts directly; elsewhere it opens the search window with those translations selected.",
 			],
 		},
 		{
 			title: "Chinese, Japanese, Greek and Hebrew",
 			paras: [
-				"The language groups in the 'Add a translation' (+) menu offer 和合本 (traditional), 口語訳, SBLGNT, Textus Receptus and Tischendorf (Greek NT), and WLC and Delitzsch (Hebrew). Once added, a chip for that language appears in the search window.",
+				"The language groups in the 'Add a translation' (+) menu offer 和合本 (simplified or traditional), 口語訳, SBLGNT, Textus Receptus and Tischendorf (Greek NT), and WLC and Delitzsch (Hebrew). Once added, a chip for that language appears in the search window.",
 				"You can also search with Chinese or Japanese book names, e.g. 约翰福音 3:16, 約3:16, ヨハ3章16節, 林前13:4-7.",
 				"Greek texts are NT only and Hebrew WLC is OT only, so their cards appear only when the book is in them. Hebrew versification differs in places (psalm titles, Malachi 4 …) — check the verse number.",
-				"Copyrighted editions such as 新标点和合本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX and BHS get the right notice automatically when added as Accordance modules.",
+				"Copyrighted editions such as 新标点和合本, 和合本修订版, 新译本, 当代译本, 新共同訳, 新改訳, NA28, UBS5, Rahlfs LXX and BHS get the right notice automatically when added as Accordance modules.",
 			],
 		},
 		{
@@ -599,15 +635,25 @@ const en: typeof ko = {
 	],
 };
 
-function uiLang(): "ko" | "en" {
+export type Strings = typeof ko;
+export type UiLang = "ko" | "en" | "zh" | "zh-TW";
+
+/** Interface language from Obsidian's setting: Korean, Simplified / Traditional Chinese, else English. */
+export function uiLang(): UiLang {
+	let l = "";
 	try {
-		return (getLanguage() ?? "").startsWith("ko") ? "ko" : "en";
+		l = (getLanguage() ?? "").toLowerCase();
 	} catch {
 		return "en";
 	}
+	if (l.startsWith("ko")) return "ko";
+	if (l === "zh-tw" || l === "zh-hk" || l.startsWith("zh-hant")) return "zh-TW";
+	if (l.startsWith("zh")) return "zh";
+	return "en";
 }
 
-export const t: typeof ko = uiLang() === "ko" ? ko : en;
+const STRINGS: Record<UiLang, Strings> = { ko, en, zh: zhCN, "zh-TW": zhTW };
+export const t: Strings = STRINGS[uiLang()];
 
 /**
  * Display name of a language code: Versedrop's own name, then the name stored with the translation,

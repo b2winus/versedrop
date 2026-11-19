@@ -3,7 +3,7 @@ import { AccordanceBridge } from "./accordance";
 import { clearCustomBookNames, registerBookNames } from "./books";
 import { formatPassages, Passage } from "./format";
 import { removeCommand } from "./hotkeys";
-import { t } from "./i18n";
+import { t, uiLang } from "./i18n";
 import { VerseModal } from "./modal";
 import { BibleReference, parseReference } from "./reference";
 import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./settings";
@@ -157,6 +157,14 @@ export default class VersedropPlugin extends Plugin {
 			if (!seen.has(tr.id) && tr.defaultOn && !this.settings.enabled.includes(tr.id)) this.settings.enabled.push(tr.id);
 		}
 		this.settings.seenBuiltIns = BUILT_IN_TRANSLATIONS.map((tr) => tr.id);
+		// First run with a Chinese interface: start with 和合本 (in the user's script) and KJV.
+		if (!saved.enabled && (uiLang() === "zh" || uiLang() === "zh-TW")) {
+			const cuv = uiLang() === "zh" ? "CUVS" : "CUV";
+			this.settings.languages = ["zh", "en"];
+			this.settings.enabled = [cuv, ...DEFAULT_SETTINGS.enabled.filter((id) => !["KRV", "RNKSV"].includes(id))];
+			this.settings.picked = [cuv, "KJV"];
+			this.settings.order = [...this.settings.enabled];
+		}
 		if (!saved.order) this.settings.order = [...this.settings.enabled, ...this.settings.custom.map((c) => c.id)];
 		for (const id of [...this.settings.enabled, ...this.settings.custom.map((c) => c.id)]) {
 			if (!this.settings.order.includes(id)) this.settings.order.push(id);

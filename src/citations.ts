@@ -51,7 +51,13 @@ export const KNOWN_CITATIONS: KnownCitation[] = [
 		text: "Scripture quotations are from the New Revised Standard Version Bible, copyright © the National Council of the Churches of Christ in the United States of America. Used by permission. All rights reserved.",
 	},
 	// Chinese
-	{ pattern: /新标点|新標點|^cunps?$|^cnvs?$/i, text: "经文引自《新标点和合本》，© 香港圣经公会，蒙允准使用。" },
+	{ pattern: /修订版|修訂版|^rcuvs?$/i, text: "经文引自《和合本修订版》，© 香港圣经公会，蒙允准使用。" },
+	{ pattern: /新标点|新標點|^cunps?$|^cunpt?$/i, text: "经文引自《新标点和合本》，© 香港圣经公会，蒙允准使用。" },
+	{ pattern: /新译本|新譯本|^cnvs?$|^cnvt$/i, text: "经文引自《圣经新译本》，© 环球圣经公会，蒙允准使用。" },
+	{ pattern: /当代译本|當代譯本|^ccb[st]?$/i, text: "经文引自《圣经当代译本修订版》，© Biblica, Inc.®，蒙允准使用。" },
+	{ pattern: /中文标准译本|中文標準譯本/i, text: "经文引自《中文标准译本》，© 全球圣经促进会，蒙允准使用。" },
+	{ pattern: /现代中文|現代中文|^tcv/i, text: "经文引自《现代中文译本》，© 香港圣经公会/台湾圣经公会，蒙允准使用。" },
+	{ pattern: /吕振中|呂振中/i, text: "经文引自《吕振中译本》，© 香港圣经公会，蒙允准使用。" },
 	{ pattern: /思高|^chisb$/i, text: "思高聖經 © 思高聖經學會" },
 	// Japanese
 	{ pattern: /新共同訳|^jpnict$/i, text: "聖書 新共同訳 © 日本聖書協会" },

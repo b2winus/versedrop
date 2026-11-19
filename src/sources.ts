@@ -4,7 +4,7 @@ import { fetchBollsChapter } from "./adapters/bolls";
 import { fetchNetChapter } from "./adapters/net";
 import { EsvClient } from "./adapters/esv";
 import { fetchHelloAoChapter, findMirror } from "./adapters/helloao";
-import { cleanText, Verse } from "./text";
+import { cleanText, toSimplified, Verse } from "./text";
 import { AccordanceBridge } from "./accordance";
 import { knownCitation } from "./citations";
 import { t } from "./i18n";
@@ -52,6 +52,8 @@ export interface Translation {
 	linkAbbr?: boolean;
 	/** Only contains this testament (Greek NT, Hebrew OT …) */
 	testament?: "OT" | "NT";
+	/** Convert the text's script on the fly (t2s: traditional → simplified Chinese) */
+	convert?: "t2s";
 	/** Also contains the deuterocanonical books (토비트, 집회서, 마카베오 …) */
 	deutero?: boolean;
 	/** Chinese script for book names */
@@ -72,7 +74,7 @@ export const BUILT_IN_TRANSLATIONS: Translation[] = [
 	{ id: "RNKSV", name: "새번역", abbr: "새번역", lang: "ko", source: "bolls", code: "RNKSV", note: "© 대한성서공회 · bolls.life 제공 — 기본 꺼짐 / off by default", builtIn: true, defaultOn: false, copyrighted: true, notice: "성경전서 새번역 © 대한성서공회" },
 	// English — public domain or open licence, no key needed
 	{ id: "KJV", name: "King James Version", abbr: "KJV", lang: "en", source: "bolls", code: "KJV", note: "Public domain", builtIn: true, defaultOn: true },
-	{ id: "WEB", name: "World English Bible", abbr: "WEB", lang: "en", source: "bolls", code: "WEB", note: "Public domain · modern English", builtIn: true, defaultOn: true },
+	{ id: "WEB", name: "World English Bible", abbr: "WEB", lang: "en", source: "bolls", code: "WEB", note: "Public domain · modern English", builtIn: true, defaultOn: false },
 	{ id: "BSB", name: "Berean Standard Bible", abbr: "BSB", lang: "en", source: "bolls", code: "BSB", note: "Public domain (2023~) · modern English", builtIn: true, defaultOn: true },
 	{
 		id: "NET",
@@ -97,18 +99,19 @@ export const BUILT_IN_TRANSLATIONS: Translation[] = [
 		source: "esv",
 		note: "© Crossway · needs your own free ESV API key (non-commercial)",
 		builtIn: true,
-		defaultOn: true,
+		defaultOn: false,
 		copyrighted: true,
 		noticeRequired: true,
 		notice: "Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.",
 		link: "https://www.esv.org",
 	},
-	{ id: "ASV", name: "American Standard Version", abbr: "ASV", lang: "en", source: "bolls", code: "ASV", note: "Public domain (1901)", builtIn: true, defaultOn: true },
-	{ id: "YLT", name: "Young's Literal Translation", abbr: "YLT", lang: "en", source: "bolls", code: "YLT", note: "Public domain (1898)", builtIn: true, defaultOn: true },
+	{ id: "ASV", name: "American Standard Version", abbr: "ASV", lang: "en", source: "bolls", code: "ASV", note: "Public domain (1901)", builtIn: true, defaultOn: false },
+	{ id: "YLT", name: "Young's Literal Translation", abbr: "YLT", lang: "en", source: "bolls", code: "YLT", note: "Public domain (1898)", builtIn: true, defaultOn: false },
 	{ id: "LSV", name: "Literal Standard Version", abbr: "LSV", lang: "en", source: "bolls", code: "LSV", note: "CC BY-SA 4.0 · literal, modern English", builtIn: true, defaultOn: false, notice: "Literal Standard Version (LSV), CC BY-SA 4.0, Covenant Press" },
 	{ id: "GNV", name: "Geneva Bible (1599)", abbr: "GNV", lang: "en", source: "bolls", code: "GNV", note: "Public domain", builtIn: true, defaultOn: false },
 	{ id: "DRB", name: "Douay-Rheims Bible", abbr: "DRB", lang: "en", source: "bolls", code: "DRB", note: "Public domain · Catholic", builtIn: true, defaultOn: false },
 	// Chinese
+	{ id: "CUVS", name: "和合本（简体）", abbr: "和合本", lang: "zh", script: "simplified", source: "bolls", code: "CUV", convert: "t2s", note: "Chinese Union Version 1919 · 简体 (converted from the public-domain traditional text) · Public domain", builtIn: true, defaultOn: false },
 	{ id: "CUV", name: "和合本", abbr: "和合本", lang: "zh", script: "traditional", source: "bolls", code: "CUV", note: "Chinese Union Version 1919 · 繁體 · Public domain", builtIn: true, defaultOn: false },
 	// Japanese
 	{ id: "JPKJV", name: "口語訳", abbr: "口語訳", lang: "ja", source: "bolls", code: "JPKJV", note: "Japanese Colloquial 1954/55 · 日本では著作権保護期間満了", builtIn: true, defaultOn: false },
@@ -311,6 +314,7 @@ export class BibleSource {
 		if (tr.source === "accordance") verses = await this.fromAccordance(tr, ref);
 		else if (tr.source === "esv") verses = await this.esv.fetch(ref);
 		else verses = (await this.getChapter(tr, ref.book, ref.chapter)).filter((v) => inRanges(v.verse, ref.ranges));
+		if (tr.convert === "t2s") verses = verses.map((v) => ({ ...v, text: toSimplified(v.text) }));
 		// Some Hebrew sources mark morpheme breaks with "/" — remove them for reading.
 		if (tr.lang === "he") verses = verses.map((v) => ({ ...v, text: v.text.replace(/\//g, "") }));
 		return verses;

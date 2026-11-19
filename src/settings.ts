@@ -13,8 +13,10 @@ export interface VersedropSettings extends FormatOptions {
 	languages: Lang[];
 	/** Built-in translation ids shown in the search window */
 	enabled: string[];
-	/** Translation ids checked for insertion by default */
+	/** "Insert these": translation ids inserted by default, in insertion order */
 	picked: string[];
+	/** After a search: preview the translations to insert, or insert them right away */
+	searchMode: "preview" | "instant";
 	custom: Translation[];
 	/** Translation sets that get their own command */
 	presets: Preset[];
@@ -36,6 +38,7 @@ export const DEFAULT_SETTINGS: VersedropSettings = {
 	languages: ["ko", "en"],
 	enabled: BUILT_IN_TRANSLATIONS.filter((tr) => tr.defaultOn).map((tr) => tr.id),
 	picked: ["KRV", "KJV"],
+	searchMode: "preview",
 	custom: [],
 	presets: [],
 	order: BUILT_IN_TRANSLATIONS.filter((tr) => tr.defaultOn).map((tr) => tr.id),
