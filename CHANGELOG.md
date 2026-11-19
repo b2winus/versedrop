@@ -3,6 +3,10 @@
 Each release's notes on GitHub are filled in from the matching section below.
 Requires Obsidian 1.13+ since 0.6.0.
 
+## 0.8.5
+
+Same features as 0.8.4, released properly: 0.8.4 was published without its files because the leftover ESV adapter stopped the build. The adapter is removed and releases are now built and attached automatically.
+
 ## 0.8.4
 
 Simpler settings and a tidier search window.

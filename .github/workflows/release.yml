@@ -1,0 +1,78 @@
+# Builds the plugin from this repository when a release is published, attaches
+# main.js, manifest.json and styles.css with artifact attestations, and fills in
+# the release notes from CHANGELOG.md when the release has none.
+#
+# How to release: bump the version (manifest.json, package.json, versions.json),
+# add a "## <version>" section to CHANGELOG.md, then Releases → Draft a new release
+# → tag = the version without "v" → Publish. Nothing needs to be attached by hand.
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to rebuild (e.g. 0.8.2)"
+        required: true
+
+permissions:
+  contents: write # upload release assets, edit release notes
+  id-token: write # sign the attestations
+  attestations: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Check that the tag matches manifest.json
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match manifest.json version $VERSION"
+            exit 1
+          fi
+          node -e "const v=require('./versions.json'); if(!v['$TAG']) { console.error('::error::versions.json has no entry for $TAG'); process.exit(1) }"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
+            manifest.json
+
+      - name: Attach files to the release
+        run: gh release upload "$TAG" main.js manifest.json styles.css --clobber
+
+      - name: Fill in release notes from CHANGELOG.md
+        run: |
+          BODY=$(gh release view "$TAG" --json body --jq .body)
+          if [ -n "$(echo "$BODY" | tr -d '[:space:]')" ]; then
+            echo "Release already has notes — leaving them as they are."
+            exit 0
+          fi
+          awk -v ver="$TAG" '
+            $0 ~ "^## " { if (found) exit; if ($2 == ver) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::warning::CHANGELOG.md has no section for $TAG"
+            exit 0
+          fi
+          gh release edit "$TAG" --notes-file notes.md
