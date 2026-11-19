@@ -2,7 +2,6 @@ import { App, normalizePath, TFile } from "obsidian";
 import { BookInfo, bookByUsfm, findBook, getBook, isOldTestament } from "./books";
 import { fetchBollsChapter } from "./adapters/bolls";
 import { fetchNetChapter } from "./adapters/net";
-import { EsvClient } from "./adapters/esv";
 import { fetchHelloAoChapter, findMirror } from "./adapters/helloao";
 import { cleanText, toSimplified, Verse } from "./text";
 import { AccordanceBridge } from "./accordance";
@@ -17,7 +16,7 @@ import { BibleReference, chapterParts, inRanges } from "./reference";
 export type Lang = string;
 /** Languages in the order they are listed; other languages follow alphabetically. */
 export const LANGS: Lang[] = ["ko", "en", "zh", "ja", "grc", "he", "de", "es", "fr", "pt", "ru", "it", "nl", "la"];
-export type SourceKind = "bolls" | "file" | "accordance" | "net" | "esv" | "helloao";
+export type SourceKind = "bolls" | "file" | "accordance" | "net" | "helloao";
 
 export interface Translation {
 	id: string;
@@ -96,12 +95,12 @@ export const BUILT_IN_TRANSLATIONS: Translation[] = [
 		name: "English Standard Version",
 		abbr: "ESV",
 		lang: "en",
-		source: "esv",
-		note: "© Crossway · needs your own free ESV API key (non-commercial)",
+		source: "bolls",
+		code: "ESV",
+		note: "© Crossway · bolls.life 제공, 키 필요 없음 — 개인 연구용 / provided by bolls.life, no key — personal study",
 		builtIn: true,
 		defaultOn: false,
 		copyrighted: true,
-		noticeRequired: true,
 		notice: "Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.",
 		link: "https://www.esv.org",
 	},
@@ -263,29 +262,23 @@ export function indexLocalBible(data: unknown): ChapterMap {
 }
 
 export { apiBookName } from "./books";
-export { parseEsvText } from "./adapters/esv";
 export { parseNetJson } from "./adapters/net";
 export { cleanText } from "./text";
 
 export class BibleSource {
 	private chapterCache = new Map<string, Verse[]>();
 	private fileCache = new Map<string, ChapterMap>();
-	private esv: EsvClient;
 	/** HelloAO id that mirrors a built-in translation, or null if there is none */
 	private mirrors = new Map<string, string | null>();
 
 	constructor(
 		private app: App,
-		private esvKey: () => string,
 		private accordance: AccordanceBridge,
-	) {
-		this.esv = new EsvClient(esvKey);
-	}
+	) {}
 
 	clearCache(): void {
 		this.chapterCache.clear();
 		this.fileCache.clear();
-		this.esv.clear();
 	}
 
 	/** Verses of the reference in this translation (empty if the passage doesn't exist there). */
@@ -312,7 +305,6 @@ export class BibleSource {
 	private async getSingle(tr: Translation, ref: BibleReference): Promise<Verse[]> {
 		let verses: Verse[];
 		if (tr.source === "accordance") verses = await this.fromAccordance(tr, ref);
-		else if (tr.source === "esv") verses = await this.esv.fetch(ref);
 		else verses = (await this.getChapter(tr, ref.book, ref.chapter)).filter((v) => inRanges(v.verse, ref.ranges));
 		if (tr.convert === "t2s") verses = verses.map((v) => ({ ...v, text: toSimplified(v.text) }));
 		// Some Hebrew sources mark morpheme breaks with "/" — remove them for reading.

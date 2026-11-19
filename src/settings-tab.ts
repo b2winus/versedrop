@@ -1,6 +1,8 @@
 import {
 	AbstractInputSuggest,
 	App,
+	Component,
+	MarkdownRenderer,
 	FuzzySuggestModal,
 	Menu,
 	Modal,
@@ -20,7 +22,8 @@ import {
 import type VersedropPlugin from "./main";
 import { accordanceAvailable } from "./accordance";
 import { knownCitation } from "./citations";
-import { HelpTopic, langLabel, t } from "./i18n";
+import { HelpTopic, langLabel, t, uiLang } from "./i18n";
+import { formatPassages } from "./format";
 import { HelloAoBrowser } from "./helloao-browser";
 import { hotkeysFor, openHotkeySettings } from "./hotkeys";
 import { parseReference } from "./reference";
@@ -38,8 +41,10 @@ export function cleanFolderPath(raw: string): string {
 }
 
 /** Why a folder path can't be used, or null when it's fine. */
-export function folderPathProblem(path: string): string | null {
-	if (path.split("/").some((part) => part.startsWith(".") || part.trim() === "")) return t.sFolderHidden;
+export function folderPathProblem(path: string, configDir: string): string | null {
+	// The config folder is usually hidden, but users can rename it — check it by name too (Vault#configDir).
+	const inConfig = path === configDir || path.startsWith(`${configDir}/`);
+	if (inConfig || path.split("/").some((part) => part.startsWith(".") || part.trim() === "")) return t.sFolderHidden(configDir);
 	if (/[*?"<>|:]/.test(path)) return t.sFolderBadChars;
 	return null;
 }
@@ -119,7 +124,7 @@ class FolderModal extends SuggestModal<FolderChoice> {
 
 	onChooseSuggestion(c: FolderChoice): void {
 		if ("create" in c) {
-			const problem = folderPathProblem(c.create);
+			const problem = folderPathProblem(c.create, this.app.vault.configDir);
 			if (problem) {
 				new Notice(problem, 8000);
 				return;
@@ -140,9 +145,11 @@ class FolderModal extends SuggestModal<FolderChoice> {
  * a folder picker (which can also create folders) and a "create this folder" button.
  */
 function renderImportFolder(setting: Setting, app: App, plugin: VersedropPlugin): void {
+	// Path on its own full-width row under the description, so long paths stay readable.
+	setting.settingEl.addClass("versedrop-folder-setting");
 	const describe = () => {
 		const path = plugin.settings.importFolder;
-		const problem = path ? folderPathProblem(path) : null;
+		const problem = path ? folderPathProblem(path, app.vault.configDir) : null;
 		const shown = path || t.sFolderRoot;
 		const state = problem
 			? problem
@@ -181,7 +188,7 @@ function renderImportFolder(setting: Setting, app: App, plugin: VersedropPlugin)
 			.setTooltip(t.sFolderCreate)
 			.onClick(() => {
 				const path = plugin.settings.importFolder;
-				const problem = path ? folderPathProblem(path) : null;
+				const problem = path ? folderPathProblem(path, app.vault.configDir) : null;
 				if (problem) return void new Notice(problem, 8000);
 				if (!path || app.vault.getAbstractFileByPath(path) instanceof TFolder) return void new Notice(t.sFolderAlready(path || t.sFolderRoot), 5000);
 				void ensureFolder(app, path).then((ok) => {
@@ -251,8 +258,34 @@ class JsonFileModal extends FuzzySuggestModal<TFile> {
 	}
 }
 
+/** Options that change how an inserted passage looks (the preview redraws when they change). */
+const LOOK_KEYS = new Set(["style", "calloutType", "group", "headerTemplate", "bookName", "verseNumbers", "versePerLine", "citations", "appLinks", "logosVersion", "accordanceModule"]);
+
+/** Public-domain sample text for the look preview: [translation id, John 3:16, John 3:17]. */
+const PREVIEW_SAMPLES: Record<string, [string, string, string][]> = {
+	ko: [
+		["KRV", "하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 저를 믿는 자마다 멸망치 않고 영생을 얻게 하려 하심이니라", "하나님이 그 아들을 세상에 보내신 것은 세상을 심판하려 하심이 아니요 저로 말미암아 세상이 구원을 받게 하려 하심이라"],
+		["KJV", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.", "For God sent not his Son into the world to condemn the world; but that the world through him might be saved."],
+	],
+	en: [
+		["KJV", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.", "For God sent not his Son into the world to condemn the world; but that the world through him might be saved."],
+		["KRV", "하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 저를 믿는 자마다 멸망치 않고 영생을 얻게 하려 하심이니라", "하나님이 그 아들을 세상에 보내신 것은 세상을 심판하려 하심이 아니요 저로 말미암아 세상이 구원을 받게 하려 하심이라"],
+	],
+	zh: [
+		["CUVS", "神爱世人，甚至将他的独生子赐给他们，叫一切信他的，不至灭亡，反得永生。", "因为神差他的儿子降世，不是要定世人的罪，乃是要叫世人因他得救。"],
+		["KJV", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.", "For God sent not his Son into the world to condemn the world; but that the world through him might be saved."],
+	],
+	"zh-TW": [
+		["CUV", "神愛世人，甚至將他的獨生子賜給他們，叫一切信他的，不至滅亡，反得永生。", "因為神差他的兒子降世，不是要定世人的罪，乃是要叫世人因他得救。"],
+		["KJV", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.", "For God sent not his Son into the world to condemn the world; but that the world through him might be saved."],
+	],
+};
+
 /** Settings tab built on Obsidian's declarative settings API (1.13+), so every option is searchable. */
 export class VersedropSettingTab extends PluginSettingTab {
+	private previewComponent?: Component;
+	private previewEl?: HTMLElement;
+
 	constructor(app: App, private plugin: VersedropPlugin) {
 		super(app, plugin);
 	}
@@ -274,6 +307,8 @@ export class VersedropSettingTab extends PluginSettingTab {
 		s[key] = value;
 		await this.plugin.saveSettings();
 		this.refreshDomState();
+		// Redraw just the preview, so typing in a text field keeps its focus.
+		if (LOOK_KEYS.has(key)) this.drawPreview();
 	}
 
 	/** Saves and rebuilds the definitions (for added, removed or reordered items). */
@@ -289,9 +324,11 @@ export class VersedropSettingTab extends PluginSettingTab {
 
 		const all = this.plugin.allTranslations();
 		const insertList = s.picked.map((id) => all.find((tr) => tr.id === id)).filter((tr): tr is Translation => !!tr);
+		const linkLabel = { none: t.sLinksNone, logos: t.sLinksLogos, accordance: t.sLinksAccordance, both: t.sLinksBoth };
+		const styleLabel = { callout: t.sStyleCallout, quote: t.sStyleQuote, plain: t.sStylePlain };
 
 		return [
-			// ── Insert these (default translations) ──────────────────
+			// ── 1. What gets inserted ────────────────────────────────
 			{
 				type: "list",
 				heading: t.sInsertList,
@@ -315,7 +352,7 @@ export class VersedropSettingTab extends PluginSettingTab {
 				},
 				addItem: { name: t.sInsertAdd, action: (el) => this.openPickMenu(el) },
 			},
-			// ── Search window ────────────────────────────────────────
+			// ── 2. How the search window behaves ─────────────────────
 			{
 				type: "group",
 				heading: t.sSearchWindow,
@@ -328,192 +365,195 @@ export class VersedropSettingTab extends PluginSettingTab {
 					},
 				],
 			},
-			// ── My translations ──────────────────────────────────────
-			{
-				type: "list",
-				heading: t.sMyTranslations,
-				emptyState: t.sNoTranslations,
-				items: list.map((tr) => this.translationItem(tr)),
-				onReorder: (from, to) => void this.reorder(list, from, to),
-				onDelete: (index) => void this.removeTranslation(list[index]),
-				addItem: { name: t.sAddTranslation, action: (el) => this.openAddMenu(el) },
-			},
-			// ── ESV key (only when ESV is in the list) ───────────────
+			// ── 3. Everything else, one page each ────────────────────
 			{
 				type: "group",
-				heading: "ESV",
-				visible: () => this.plugin.settings.enabled.includes("ESV"),
+				heading: t.sMore,
 				items: [
 					{
-						name: t.sEsvKey,
-						desc: t.sEsvKeyDesc,
-						aliases: ["api key", "crossway"],
-						render: (setting) => {
-							setting.addText((x) => {
-								x.inputEl.type = "password";
-								x.setPlaceholder("API key")
-									.setValue(s.esvApiKey)
-									.onChange((v) => {
-										s.esvApiKey = v.trim();
-										this.plugin.source.clearCache();
-										void this.plugin.saveSettings();
-									});
-							});
-							setting.addExtraButton((b) =>
-								b
-									.setIcon("external-link")
-									.setTooltip("api.esv.org")
-									.onClick(() => window.open("https://api.esv.org/account/create-application/")),
-							);
-						},
+						type: "page",
+						name: t.sMyTranslations,
+						desc: t.sPageTranslationsDesc,
+						displayValue: () => t.sCount(this.orderedTranslations().length),
+						items: [
+							{
+								type: "list",
+								heading: t.sMyTranslations,
+								emptyState: t.sNoTranslations,
+								items: list.map((tr) => this.translationItem(tr)),
+								onReorder: (from, to) => void this.reorder(list, from, to),
+								onDelete: (index) => void this.removeTranslation(list[index]),
+								addItem: { name: t.sAddTranslation, action: (el) => this.openAddMenu(el) },
+							},
+							{
+								type: "group",
+								heading: t.sJsonFiles,
+								items: [
+									{
+										name: t.sImportFolder,
+										desc: t.sImportFolderDesc,
+										aliases: ["folder", "폴더", "json", "import"],
+										render: (setting) => renderImportFolder(setting, this.app, this.plugin),
+									},
+								],
+							},
+						],
 					},
-				],
-			},
-			// ── JSON files ───────────────────────────────────────────
-			{
-				type: "group",
-				heading: t.sJsonFiles,
-				items: [
 					{
-						name: t.sImportFolder,
-						desc: t.sImportFolderDesc,
-						aliases: ["folder", "폴더", "json", "import"],
-						render: (setting) => renderImportFolder(setting, this.app, this.plugin),
+						type: "page",
+						name: t.sPageLook,
+						desc: t.sPageLookDesc,
+						displayValue: () => `${styleLabel[this.plugin.settings.style]}`,
+						items: [
+							{
+								type: "group",
+								heading: t.sPreview,
+								items: [{ name: t.sPreview, desc: t.sPreviewDesc, render: (setting) => this.renderPreview(setting) }],
+							},
+							{
+								type: "group",
+								heading: t.sLookBlock,
+								items: [
+									{
+										name: t.sStyle,
+										control: { type: "dropdown", key: "style", options: styleLabel },
+									},
+									{
+										name: t.sCalloutType,
+										desc: t.sCalloutTypeDesc,
+										visible: () => this.plugin.settings.style === "callout",
+										control: { type: "text", key: "calloutType", placeholder: "quote" },
+									},
+									{ name: t.sGroup, desc: t.sGroupDesc, control: { type: "toggle", key: "group" } },
+									{ name: t.sHeader, desc: t.sHeaderDesc, control: { type: "text", key: "headerTemplate", placeholder: DEFAULT_SETTINGS.headerTemplate } },
+								],
+							},
+							{
+								type: "group",
+								heading: t.sLookText,
+								items: [
+									{ name: t.sBookName, control: { type: "dropdown", key: "bookName", options: { full: t.sBookFull, short: t.sBookShort } } },
+									{
+										name: t.sVerseNum,
+										control: { type: "dropdown", key: "verseNumbers", options: { none: t.sVerseNumNone, plain: t.sVerseNumPlain, sup: t.sVerseNumSup } },
+									},
+									{ name: t.sPerLine, control: { type: "toggle", key: "versePerLine" } },
+								],
+							},
+							{
+								type: "group",
+								heading: t.sCitations,
+								items: [
+									{
+										name: t.sCitations,
+										desc: t.sCitationsDesc,
+										aliases: ["copyright", "저작권"],
+										control: { type: "dropdown", key: "citations", options: { copyrighted: t.sCitCopyrighted, all: t.sCitAll, off: t.sCitOff } },
+									},
+									{ name: t.sQuoteWarn, desc: t.sQuoteWarnDesc, control: { type: "number", key: "quoteWarn", min: 0, step: 1 } },
+								],
+							},
+						],
 					},
-				],
-			},
-			// ── Hotkeys ──────────────────────────────────────────────
-			{
-				type: "group",
-				heading: t.sHotkeys,
-				items: [
-					this.hotkeyItem("insert-passage", t.cmdInsert, t.sCmdInsertDesc),
-					this.hotkeyItem("insert-direct", t.cmdDirect, t.sCmdDirectDesc),
-				],
-			},
-			// ── Presets ──────────────────────────────────────────────
-			{
-				type: "list",
-				heading: t.sPresets,
-				emptyState: t.sPresetAddDesc,
-				items: s.presets.map((p) => this.presetItem(p)),
-				onReorder: (from, to) => {
-					const [moved] = s.presets.splice(from, 1);
-					s.presets.splice(to, 0, moved);
-					void this.saveAndRebuild();
-				},
-				onDelete: (index) => {
-					const [removed] = s.presets.splice(index, 1);
-					if (removed) this.plugin.unregisterPreset(removed);
-					void this.saveAndRebuild();
-				},
-				addItem: {
-					name: t.sPresetAdd,
-					action: () => {
-						const p: Preset = { id: Date.now().toString(36), name: "", translations: [...s.picked] };
-						s.presets.push(p);
-						this.plugin.registerPreset(p);
-						void this.saveAndRebuild();
-						new PresetModal(this.app, this.plugin, p, () => this.update()).open();
-					},
-				},
-			},
-			// ── Logos / Accordance links ─────────────────────────────
-			{
-				type: "group",
-				heading: t.sLinks,
-				items: [
 					{
-						name: t.sAppLinks,
+						type: "page",
+						name: t.sHotkeys,
+						desc: t.sPageKeysDesc,
+						displayValue: () => (this.plugin.settings.presets.length ? t.sPresetCount(this.plugin.settings.presets.length) : ""),
+						items: [
+							{
+								type: "group",
+								heading: t.sHotkeys,
+								items: [
+									this.hotkeyItem("insert-passage", t.cmdInsert, t.sCmdInsertDesc),
+									this.hotkeyItem("insert-direct", t.cmdDirect, t.sCmdDirectDesc),
+								],
+							},
+							{
+								type: "list",
+								heading: t.sPresets,
+								emptyState: t.sPresetAddDesc,
+								items: s.presets.map((p) => this.presetItem(p)),
+								onReorder: (from, to) => {
+									const [moved] = s.presets.splice(from, 1);
+									s.presets.splice(to, 0, moved);
+									void this.saveAndRebuild();
+								},
+								onDelete: (index) => {
+									const [removed] = s.presets.splice(index, 1);
+									if (removed) this.plugin.unregisterPreset(removed);
+									void this.saveAndRebuild();
+								},
+								addItem: {
+									name: t.sPresetAdd,
+									action: () => {
+										const p: Preset = { id: Date.now().toString(36), name: "", translations: [...s.picked] };
+										s.presets.push(p);
+										this.plugin.registerPreset(p);
+										void this.saveAndRebuild();
+										new PresetModal(this.app, this.plugin, p, () => this.update()).open();
+									},
+								},
+							},
+						],
+					},
+					{
+						type: "page",
+						name: t.sLinks,
 						desc: t.sLinksDesc,
-						aliases: ["logos", "accordance", "ref.ly"],
-						control: {
-							type: "dropdown",
-							key: "appLinks",
-							options: { none: t.sLinksNone, logos: t.sLinksLogos, accordance: t.sLinksAccordance, both: t.sLinksBoth },
-						},
+						displayValue: () => linkLabel[this.plugin.settings.appLinks],
+						items: [
+							{
+								type: "group",
+								items: [
+									{
+										name: t.sAppLinks,
+										aliases: ["logos", "accordance", "ref.ly"],
+										control: { type: "dropdown", key: "appLinks", options: linkLabel },
+									},
+									{
+										name: t.sLogosVersion,
+										desc: t.sLogosVersionDesc,
+										visible: () => linkShown("logos"),
+										control: { type: "text", key: "logosVersion", placeholder: "NIV" },
+									},
+									{
+										name: t.sAccModule,
+										desc: t.sAccModuleDesc,
+										visible: () => linkShown("accordance"),
+										control: { type: "text", key: "accordanceModule", placeholder: "ESVS" },
+									},
+								],
+							},
+						],
 					},
 					{
-						name: t.sLogosVersion,
-						desc: t.sLogosVersionDesc,
-						visible: () => linkShown("logos"),
-						control: { type: "text", key: "logosVersion", placeholder: "ESV" },
+						type: "page",
+						name: t.sHelp,
+						desc: t.sHelpDesc,
+						items: [
+							{
+								type: "group",
+								items: [
+									...t.help.map(
+										(topic): SettingDefinitionPage => ({
+											type: "page",
+											name: topic.title,
+											page: () => new HelpPage(topic),
+										}),
+									),
+									{
+										name: t.sClearCache,
+										desc: t.sClearCacheDesc,
+										action: () => {
+											this.plugin.source.clearCache();
+											new Notice(t.sCleared);
+										},
+									},
+								],
+							},
+						],
 					},
-					{
-						name: t.sAccModule,
-						desc: t.sAccModuleDesc,
-						visible: () => linkShown("accordance"),
-						control: { type: "text", key: "accordanceModule", placeholder: "ESVS" },
-					},
-				],
-			},
-			// ── Output ───────────────────────────────────────────────
-			{
-				type: "group",
-				heading: t.sOutput,
-				items: [
-					{
-						name: t.sCitations,
-						desc: t.sCitationsDesc,
-						aliases: ["copyright", "저작권"],
-						control: {
-							type: "dropdown",
-							key: "citations",
-							options: { copyrighted: t.sCitCopyrighted, all: t.sCitAll, off: t.sCitOff },
-						},
-					},
-					{ name: t.sQuoteWarn, desc: t.sQuoteWarnDesc, control: { type: "number", key: "quoteWarn", min: 0, step: 1 } },
-					{
-						name: t.sStyle,
-						control: {
-							type: "dropdown",
-							key: "style",
-							options: { callout: t.sStyleCallout, quote: t.sStyleQuote, plain: t.sStylePlain },
-						},
-					},
-					{
-						name: t.sCalloutType,
-						desc: t.sCalloutTypeDesc,
-						visible: () => this.plugin.settings.style === "callout",
-						control: { type: "text", key: "calloutType", placeholder: "quote" },
-					},
-					{ name: t.sGroup, desc: t.sGroupDesc, control: { type: "toggle", key: "group" } },
-					{ name: t.sHeader, desc: t.sHeaderDesc, control: { type: "text", key: "headerTemplate", placeholder: DEFAULT_SETTINGS.headerTemplate } },
-					{
-						name: t.sBookName,
-						control: { type: "dropdown", key: "bookName", options: { full: t.sBookFull, short: t.sBookShort } },
-					},
-					{
-						name: t.sVerseNum,
-						control: {
-							type: "dropdown",
-							key: "verseNumbers",
-							options: { none: t.sVerseNumNone, plain: t.sVerseNumPlain, sup: t.sVerseNumSup },
-						},
-					},
-					{ name: t.sPerLine, control: { type: "toggle", key: "versePerLine" } },
-					{
-						name: t.sClearCache,
-						desc: t.sClearCacheDesc,
-						action: () => {
-							this.plugin.source.clearCache();
-							new Notice(t.sCleared);
-						},
-					},
-				],
-			},
-			// ── Support & help ───────────────────────────────────────
-			{
-				type: "group",
-				heading: t.sHelp,
-				items: [
-					...t.help.map(
-						(topic): SettingDefinitionPage => ({
-							type: "page",
-							name: topic.title,
-							page: () => new HelpPage(topic),
-						}),
-					),
 					{
 						name: `☕ ${t.sSupport}`,
 						desc: t.sSupportDesc,
@@ -523,6 +563,36 @@ export class VersedropSettingTab extends PluginSettingTab {
 				],
 			},
 		];
+	}
+
+	/** A live sample of an inserted passage with the current look settings (John 3:16-17). */
+	private renderPreview(setting: Setting): void {
+		setting.settingEl.addClass("versedrop-preview-setting");
+		this.previewEl = setting.settingEl.createDiv({ cls: "versedrop-preview markdown-rendered" });
+		this.drawPreview();
+	}
+
+	private drawPreview(): void {
+		const box = this.previewEl;
+		if (!box || !box.isConnected) return;
+		box.empty();
+		this.previewComponent?.unload();
+		this.previewComponent = new Component();
+		this.previewComponent.load();
+		const ref = parseReference("John 3:16-17");
+		const sample = PREVIEW_SAMPLES[uiLang()] ?? PREVIEW_SAMPLES.en;
+		const passages = sample
+			.map(([id, a, b]) => ({ tr: BUILT_IN_TRANSLATIONS.find((x) => x.id === id), a, b }))
+			.filter((x): x is { tr: Translation; a: string; b: string } => !!x.tr)
+			.map(({ tr, a, b }) => ({ translation: tr, verses: [{ verse: 16, text: a }, { verse: 17, text: b }] }));
+		void MarkdownRenderer.render(this.app, formatPassages(ref, passages, this.plugin.settings), box, "", this.previewComponent);
+	}
+
+	hide(): void {
+		this.previewComponent?.unload();
+		this.previewComponent = undefined;
+		this.previewEl = undefined;
+		super.hide();
 	}
 
 	// ── My translations ────────────────────────────────────────────
@@ -876,7 +946,7 @@ export class TranslationModal extends Modal {
 					return;
 				}
 				const folder = cleanFolderPath(this.plugin.settings.importFolder);
-				const problem = folder ? folderPathProblem(folder) : null;
+				const problem = folder ? folderPathProblem(folder, this.app.vault.configDir) : null;
 				if (problem) {
 					new Notice(problem, 10000);
 					return;

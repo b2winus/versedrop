@@ -18,7 +18,7 @@ export default class VersedropPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		this.accordance = new AccordanceBridge();
-		this.source = new BibleSource(this.app, () => this.settings.esvApiKey, this.accordance);
+		this.source = new BibleSource(this.app, this.accordance);
 
 		this.addCommand({
 			id: "insert-passage",
@@ -45,9 +45,7 @@ export default class VersedropPlugin extends Plugin {
 	/** Enabled built-in translations followed by custom ones that are filled in. */
 	allTranslations(): Translation[] {
 		const enabled = new Set(this.settings.enabled);
-		const builtIn = BUILT_IN_TRANSLATIONS.filter(
-			(tr) => enabled.has(tr.id) && (tr.source !== "esv" || this.settings.esvApiKey.trim()),
-		);
+		const builtIn = BUILT_IN_TRANSLATIONS.filter((tr) => enabled.has(tr.id));
 		const custom = this.settings.custom
 			.filter((tr) => tr.name.trim() && (tr.source === "bolls" ? tr.code : tr.source === "file" ? tr.path : tr.module))
 			.map((tr) => ({ ...tr, abbr: tr.abbr || tr.name }));
@@ -157,6 +155,11 @@ export default class VersedropPlugin extends Plugin {
 			if (!seen.has(tr.id) && tr.defaultOn && !this.settings.enabled.includes(tr.id)) this.settings.enabled.push(tr.id);
 		}
 		this.settings.seenBuiltIns = BUILT_IN_TRANSLATIONS.map((tr) => tr.id);
+		// 0.8.3: ESV no longer needs a personal API key (it comes from bolls.life); drop the old key and any ids that no longer exist.
+		const known = new Set([...BUILT_IN_TRANSLATIONS.map((tr) => tr.id), ...this.settings.custom.map((c) => c.id)]);
+		for (const key of ["enabled", "picked", "order"] as const) this.settings[key] = this.settings[key].filter((id) => known.has(id));
+		delete (this.settings as { esvApiKey?: string }).esvApiKey;
+		for (const p of this.settings.presets) p.translations = p.translations.filter((id) => known.has(id));
 		// First run with a Chinese interface: start with 和合本 (in the user's script) and KJV.
 		if (!saved.enabled && (uiLang() === "zh" || uiLang() === "zh-TW")) {
 			const cuv = uiLang() === "zh" ? "CUVS" : "CUV";

@@ -208,3 +208,38 @@
 .versedrop-others-icon { display: inline-flex; }
 .versedrop-others-icon svg { width: 14px; height: 14px; }
 .versedrop-others > .versedrop-langs { margin: 0 0 var(--size-4-2); }
+
+/* "Save to folder": description on top, a full-width path field and its buttons below */
+.versedrop-folder-setting { flex-wrap: wrap; row-gap: var(--size-4-2); }
+.versedrop-folder-setting > .setting-item-info { flex: 1 1 100%; margin-inline-end: 0; }
+.versedrop-folder-setting > .setting-item-control { flex: 1 1 100%; justify-content: flex-start; }
+.versedrop-folder-setting > .setting-item-control input[type="text"] {
+	flex: 1 1 auto;
+	width: auto;
+	min-width: 0;
+	font-family: var(--font-monospace);
+}
+
+/* Settings: live preview of an inserted passage */
+.versedrop-preview-setting { flex-direction: column; align-items: stretch; gap: var(--size-4-3); }
+.versedrop-preview-setting > .setting-item-control { display: none; }
+.versedrop-preview {
+	padding: var(--size-4-3) var(--size-4-4);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-primary);
+	font-size: var(--font-ui-medium);
+	user-select: text;
+}
+.versedrop-preview > :first-child { margin-top: 0; }
+.versedrop-preview > :last-child { margin-bottom: 0; }
+
+/* Search window polish */
+.versedrop-message.is-ref {
+	color: var(--text-normal);
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-semibold);
+}
+.versedrop-card { background: var(--background-primary); }
+.versedrop-card-head input[type="checkbox"] { margin: 0; }
+.versedrop-footer { gap: var(--size-4-3); padding-top: var(--size-4-3); border-top: 1px solid var(--background-modifier-border); }

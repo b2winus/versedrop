@@ -28,7 +28,7 @@ Search a Bible reference and drop the passage into your note — from free trans
 6. [Inserting from a reference in your note](#inserting-from-a-reference-in-your-note)
 7. [Hotkeys and presets](#hotkeys-and-presets)
 8. [Translations](#translations)
-9. [ESV and NET](#esv-and-net)
+9. [NET, NIV and ESV](#net-niv-and-esv)
 10. [Using your Accordance modules (Mac)](#using-your-accordance-modules-mac)
 11. [개역개정 and other Korean Bible Society translations](#개역개정-and-other-korean-bible-society-translations)
 12. [Logos and Accordance links](#logos-and-accordance-links)
@@ -45,7 +45,7 @@ Search a Bible reference and drop the passage into your note — from free trans
 - **Translations in 1,000+ languages:** English, Korean, German, French, Spanish, Portuguese, Chinese, Japanese, Greek, Hebrew and many more — pick languages with one click and compare translations side by side
 - Tick the translations you want and insert them in one go; your picks are remembered
 - **Hotkeys and presets:** set hotkeys right from the plugin settings, insert without opening a window, and save translation sets (e.g. *Original languages*) as their own commands
-- **ESV** with your own free API key and **NET** from its official API, alongside public-domain KJV, WEB, BSB and more
+- **NET** from its official API and **ESV** with no key, alongside public-domain KJV, WEB, BSB and more; NIV and other licensed translations through your Accordance modules
 - **Accordance (Mac):** pull text from Bible modules you own in Accordance — 개역개정, NIV, NASB and more
 - **Copyright notices added automatically** for copyrighted translations, plus a warning for long quotations
 - **Logos & Accordance links:** each passage can link straight to the same passage in your Bible software
@@ -69,7 +69,7 @@ Requires **Obsidian 1.13 or later**.
 3. Restart Obsidian (or reload plugins in Settings → Community plugins).
 4. Enable **Versedrop** in Settings → Community plugins. If this is your first community plugin, turn off *Restricted mode* first.
 
-**Recommended:** assign a hotkey — Settings → Versedrop → *Hotkeys and presets* → **Set hotkey** (see [Hotkeys and presets](#hotkeys-and-presets)).
+**Recommended:** assign a hotkey — Settings → Versedrop → *More* → *Hotkeys and presets* → **Set hotkey** (see [Hotkeys and presets](#hotkeys-and-presets)).
 
 ## Quick start
 
@@ -118,7 +118,7 @@ Already wrote `Titus 2:11-14` in your sermon notes? Put the cursor on that line 
 
 ## Hotkeys and presets
 
-Settings → Versedrop → **Hotkeys and presets** lists every Versedrop command with its current hotkey. **Set hotkey** opens Obsidian's Hotkeys screen filtered to Versedrop: click **+** next to the command and press the keys you want.
+Settings → Versedrop → *More* → **Hotkeys and presets** lists every Versedrop command with its current hotkey. **Set hotkey** opens Obsidian's Hotkeys screen filtered to Versedrop: click **+** next to the command and press the keys you want.
 
 | Command | What it does |
 |---|---|
@@ -126,7 +126,7 @@ Settings → Versedrop → **Hotkeys and presets** lists every Versedrop command
 | **Insert in default translations (no window)** | Inserts the reference at the cursor in your translations to insert straight away — the fastest way to fill an outline. Opens the search window if there is no reference. |
 | **Preset: …** | One command per preset (see below) |
 
-**Presets** are named sets of translations you use together — for example *Korean–English* (개역한글 + ESV) or *Original languages* (SBLGNT + WLC). Click **Add preset**, name it, and click the translation chips to include. Each preset becomes its own command, so it can have its own hotkey:
+**Presets** are named sets of translations you use together — for example *Korean–English* (개역한글 + KJV) or *Original languages* (SBLGNT + WLC). Click **Add preset**, name it, and click the translation chips to include. Each preset becomes its own command, so it can have its own hotkey:
 
 - on a reference → inserts it in the preset's translations right away;
 - anywhere else → opens the search window with the preset's translations selected (your normal defaults are left unchanged).
@@ -142,8 +142,8 @@ Suggested setup: <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> for the search win
 | English | King James Version (KJV) | bolls.life | Public domain | ✓ |
 | English | World English Bible (WEB) | bolls.life | Public domain | — |
 | English | Berean Standard Bible (BSB) | bolls.life | Public domain | ✓ |
+| English | English Standard Version (ESV) | bolls.life | © Crossway — no key needed, personal study | — |
 | English | New English Translation (NET) | NET Bible API | © Biblical Studies Press — free quotation with notice | ✓ |
-| English | English Standard Version (ESV) | ESV API | © Crossway — needs your free API key | — |
 | English | American Standard Version (ASV) | bolls.life | Public domain | — |
 | English | Young's Literal Translation (YLT) | bolls.life | Public domain | — |
 | English | Literal Standard Version (LSV) | bolls.life | CC BY-SA 4.0 | — |
@@ -190,10 +190,12 @@ Tobit, Judith, Wisdom, Sirach, Baruch, 1–2 Maccabees and the Greek additions t
 
 ### Choosing your translations
 
-Settings starts with two lists:
+The settings page is short on purpose: what you insert and how the search window behaves are on the first screen, and everything else is one click away under **More** — *My translations*, *How passages look* (with a live preview), *Hotkeys and presets*, *Logos · Accordance links* and *Help*.
+
+The first screen:
 
 - **Insert these** — the translations inserted when you find a passage, in this order. Drag to reorder, delete to take one out, **+** to add one from *My translations*.
-- **My translations** — every translation you use, each with one short line (language · where it comes from). Translations not in *Insert these* still appear under *Other translations* in the search window. A new install starts with 개역한글, KJV, BSB and NET.
+- **My translations** (under *More*) — every translation you use, each with one short line (language · where it comes from). Translations not in *Insert these* still appear under *Other translations* in the search window. A new install starts with 개역한글, KJV, BSB and NET.
 
 - **Add a translation** — click **+** in the list header and pick one. The menu is grouped by language, with *Add your own* (Accordance module, bolls.life code, JSON file) at the end.
 - drag — change the order in this list
@@ -202,17 +204,16 @@ Settings starts with two lists:
 
 Translations such as 개역개정, 공동번역, NIV or NASB have no free source. You can still use them through [your Accordance modules](#using-your-accordance-modules-mac) or a [JSON file](#adding-other-translations) you are licensed to use.
 
-## ESV and NET
-
-**ESV** comes from Crossway's official [ESV API](https://api.esv.org), which is free for non-commercial use with your own key:
-
-1. Create a free account at [api.esv.org](https://api.esv.org) and choose **Create an API Application** (describe it as personal Bible study in Obsidian).
-2. Copy the API key.
-3. Settings → Versedrop → *My translations*: make sure ESV is in the list (add it from the + menu if you removed it), then paste the key into **ESV API key** in the ESV section below the list. ESV now appears in the search window.
-
-Crossway's terms apply: non-commercial use only, at most 500 verses per request, and the copyright notice with a link to esv.org is always added under ESV quotations. Versedrop keeps no more than 500 ESV verses in its memory cache.
+## NET, NIV and ESV
 
 **NET** comes from the official [NET Bible API](https://labs.bible.org) and needs no key. As its terms ask, "NET" in the header links to netbible.org and the copyright notice is always added.
+
+**ESV** is in the + menu (English) and works without a key: the text comes from bolls.life, like 새번역. It is © Crossway, so it is off by default, the copyright notice is added under every quotation, and it is meant for personal study and sermon preparation.
+
+**NIV** is licensed by Biblica and is not built in. The ways to use it:
+
+- **Accordance** — if you own the NIV module, add it as an [Accordance module](#using-your-accordance-modules-mac) (e.g. `NIV11`). The text stays on your Mac and the right copyright notice is added automatically.
+- **Logos links** — set *Logos version* to `NIV` so the link beside each passage opens it in the NIV.
 
 ## Using your Accordance modules (Mac)
 
@@ -222,7 +223,7 @@ If you own Bible modules in [Accordance](https://www.accordancebible.com), Verse
 
 **Setup:**
 
-1. Settings → Versedrop → *My translations* → **+** → **Add an Accordance module… (Mac)**.
+1. Settings → Versedrop → *More* → *My translations* → **+** → **Add an Accordance module… (Mac)**.
 2. Enter:
    - **Name** — what you want to see, e.g. `ESV` or `개역개정`.
    - **Accordance module** — exactly as Accordance shows it in the Library or a text tab (case and hyphens matter), e.g. `ESVS`.
@@ -251,7 +252,7 @@ If you own Bible modules in [Accordance](https://www.accordancebible.com), Verse
 
 Logos offers no official way for other apps to read Bible text, and its resources are encrypted, so Versedrop can't fetch text from Logos. Instead it can add a link next to every passage that opens it in your Logos — and the same for Accordance.
 
-1. Settings → *Logos · Accordance links* → **Add links**: choose **Logos**, **Accordance** or **Both**.
+1. Settings → Versedrop → *More* → *Logos · Accordance links* → **Add links**: choose **Logos**, **Accordance** or **Both**.
 2. **Logos version** — the version to open, e.g. `ESV` or `NASB95`. Leave it empty to use your preferred Bible in Logos.
 3. **Accordance link module** — the module to open, e.g. `ESVS`. Leave it empty for your default text. Passages fetched from an Accordance module always link to that module.
 
@@ -291,7 +292,7 @@ The full list is at <https://bolls.life/static/bolls/app/views/languages.json>. 
 **JSON file** — for a Bible JSON file you are licensed to use. No need to type a path:
 
 - **Import from computer** → choose the file. It is copied into your import folder (`Versedrop Bibles` by default) and connected automatically.
-- **Save to folder** — choose where imported files go, in the same dialog or under Settings → Versedrop → *JSON files*. Type a path (folders are suggested as you type), pick one with the 📁 button, or create a new folder with ＋ — in the 📁 picker you can also type a new name and press Enter to create it. Nested paths such as `Library/Bibles` work; missing folders are created on import. Leave it empty to use the vault root.
+- **Save to folder** — choose where imported files go, in the same dialog or under Settings → Versedrop → *More* → *My translations* → *JSON files*. Type a path (folders are suggested as you type), pick one with the 📁 button, or create a new folder with ＋ — in the 📁 picker you can also type a new name and press Enter to create it. Nested paths such as `Library/Bibles` work; missing folders are created on import. Leave it empty to use the vault root.
 - **Pick from vault** (🔍) → search the JSON files already in your vault by name, or just start typing in the field to autocomplete.
 
 Versedrop then checks the file and shows how many chapters and verses it found and whether it covers the OT, the NT or both. Four layouts are recognised:
@@ -320,7 +321,7 @@ Translations you add yourself open in an editor (name, code/module/path, languag
 
 Quoting a few verses with attribution in sermon notes or personal study is ordinary quotation: your own writing is the main content, the source is credited, and you don't copy excessively. Versedrop helps you stay there:
 
-- **Copyright notices** (Settings → *Output*): *Copyrighted translations* (default) adds the notice under every copyrighted translation; *All translations* also labels public-domain ones; *Off* removes them — except for ESV and NET, whose terms require a notice every time.
+- **Copyright notices** (Settings → Versedrop → *More* → *How passages look*): *Copyrighted translations* (default) adds the notice under every copyrighted translation; *All translations* also labels public-domain ones; *Off* removes them — except for NET, whose terms require a notice every time.
 - **Long quotation warning**: when you insert more than 50 verses (adjustable; 0 turns it off) of a copyrighted translation at once, Versedrop reminds you of the limits.
 - The search window shows each copyrighted translation's notice under its card.
 
@@ -364,25 +365,25 @@ Grouped example:
 |---|---|
 | "No book matches …" | Try another spelling: `John`, `Jn`, `요`, `요한복음`. |
 | A card shows a network error | Check your internet connection, then search again. |
-| Text looks wrong or outdated | Settings → **Clear cache**. |
+| Text looks wrong or outdated | Settings → Versedrop → *More* → *Help* → **Clear cache**. |
 | "Obsidian isn't allowed to control Accordance" | System Settings → Privacy & Security → Automation → Obsidian → turn on Accordance. |
 | "Accordance found no text in module …" | The abbreviation must match Accordance exactly, including case and hyphens. |
 | "Accordance found no text in module …" | The abbreviation must match Accordance exactly, including case and hyphens. |
 | Accordance is slow the first time | It is launching; later requests are faster. You can open Accordance beforehand. |
 | Accordance button is greyed out | Accordance integration only works in the desktop app on macOS. |
 | A translation doesn't appear | Check that it is in *My translations* and that you're on the right language tab. Your own translations need both a name and a code/path/module. |
-| ESV doesn't appear | Add ESV to *My translations* and paste your key into *ESV API key* under it. |
-| "The ESV API key was rejected" | Copy the key again from your application page at api.esv.org. |
 | A notice is missing for my Accordance module | Type it into the row's *Copyright notice* field. |
 
 The plugin's settings tab also has a **Help** section at the bottom covering the same topics.
 
 ## Network and system access
 
-- **Network:** text is fetched from [bolls.life](https://bolls.life), the [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org) (for translations you add from it, and as a backup for built-in public-domain texts when bolls.life is unreachable) and — only if you add your key — the [ESV API](https://api.esv.org). Only the translation, book and chapter (or passage) are sent; your ESV key is sent only to api.esv.org. Opening the HelloAO browser downloads its list of translations.
+- **Network:** text is fetched from [bolls.life](https://bolls.life), the [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org) (for translations you add from it, and as a backup for built-in public-domain texts when bolls.life is unreachable) Only the translation, book and chapter (or passage) are sent. Opening the HelloAO browser downloads its list of translations.
 - **Local only:** JSON files and Accordance modules are read on your device; nothing is sent over the network.
 - **Accordance (macOS):** runs `osascript` through Node's `execFile` (no shell) with a fixed AppleScript that asks Accordance for verse text; the module and reference are passed as arguments. It is loaded only when you use an Accordance translation on a Mac, and macOS asks for your permission the first time.
+- **Vault access:** the JSON file picker lists `.json` files in your vault, and the folder picker lists your folders, only while those pickers are open. Versedrop reads only the JSON files you connect, and writes only the passages you insert and the JSON files you import (into your import folder).
 - Fetched passages are cached in memory until Obsidian restarts.
+- **Releases** are built from this repository by GitHub Actions, with [artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds) for `main.js` and `styles.css`. Check one with `gh attestation verify main.js --repo b2winus/versedrop`.
 
 ---
 
@@ -398,7 +399,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 6. [노트에 적어 둔 구절로 바로 가져오기](#노트에-적어-둔-구절로-바로-가져오기)
 7. [단축키와 프리셋](#단축키와-프리셋)
 8. [기본 제공 역본](#기본-제공-역본)
-9. [ESV와 NET](#esv와-net)
+9. [NET, NIV, ESV](#net-niv-esv)
 10. [Accordance 역본 연결하기 (Mac)](#accordance-역본-연결하기-mac)
 11. [개역개정 등 대한성서공회 역본](#개역개정-등-대한성서공회-역본)
 12. [Logos·Accordance 링크](#logosaccordance-링크)
@@ -415,7 +416,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - **1,000개가 넘는 언어의 역본:** 한국어·영어·독일어·프랑스어·스페인어·포르투갈어·중국어·일본어·헬라어·히브리어 등 — 언어를 클릭 한 번으로 골라 역본을 나란히 비교
 - 원하는 역본만 체크해서 한 번에 삽입 (선택은 다음에도 기억됨)
 - **단축키와 프리셋:** 플러그인 설정에서 바로 단축키 지정, 창 없이 바로 삽입, 자주 쓰는 역본 조합(예: *원어 대조*)을 명령으로 저장
-- 공개 역본(KJV, WEB, BSB 등)에 더해 **ESV**(개인 무료 API 키)와 **NET**(공식 API) 지원
+- 공개 역본(KJV, WEB, BSB 등)에 **NET**(공식 API)과 **ESV**(키 필요 없음) 지원, NIV 같은 저작권 역본은 Accordance 모듈로 연결
 - **Accordance (Mac):** Accordance에서 구입한 역본(개역개정, NIV, NASB 등)의 본문을 바로 가져오기
 - 저작권 역본에 **출처 문구 자동 표기**, 많은 분량을 인용하면 경고
 - **Logos·Accordance 링크:** 구절마다 내 성경 프로그램에서 바로 열리는 링크 추가
@@ -439,7 +440,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 3. Obsidian을 다시 시작하거나, 설정 → 커뮤니티 플러그인에서 새로고침합니다.
 4. 설정 → 커뮤니티 플러그인에서 **Versedrop**을 켭니다. 커뮤니티 플러그인을 처음 쓰신다면 *제한 모드*를 먼저 꺼 주세요.
 
-**추천:** 단축키를 지정해 두세요. 설정 → Versedrop → *단축키와 프리셋* → **단축키 지정** ([단축키와 프리셋](#단축키와-프리셋) 참고).
+**추천:** 단축키를 지정해 두세요. 설정 → Versedrop → *더 보기* → *단축키와 프리셋* → **단축키 지정** ([단축키와 프리셋](#단축키와-프리셋) 참고).
 
 ## 빠르게 시작하기
 
@@ -488,7 +489,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ## 단축키와 프리셋
 
-설정 → Versedrop → **단축키와 프리셋**에 Versedrop 명령과 지금 지정된 단축키가 모두 보여요. **단축키 지정**을 누르면 Obsidian 단축키 화면이 Versedrop 명령만 걸러서 열려요. 명령 옆의 **+** 를 누르고 원하는 키를 누르면 끝이에요.
+설정 → Versedrop → *더 보기* → **단축키와 프리셋**에 Versedrop 명령과 지금 지정된 단축키가 모두 보여요. **단축키 지정**을 누르면 Obsidian 단축키 화면이 Versedrop 명령만 걸러서 열려요. 명령 옆의 **+** 를 누르고 원하는 키를 누르면 끝이에요.
 
 | 명령 | 하는 일 |
 |---|---|
@@ -496,7 +497,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 | **기본 역본으로 바로 삽입 (창 없이)** | 커서가 있는 구절을 넣을 역본으로 창 없이 바로 넣어요. 설교 개요를 채울 때 가장 빨라요. 구절이 없으면 검색 창이 열려요. |
 | **프리셋: …** | 프리셋마다 하나씩 생기는 명령 (아래 참고) |
 
-**프리셋**은 함께 쓰는 역본 조합에 이름을 붙인 거예요. 예: *한영 대조*(개역한글 + ESV), *원어 대조*(SBLGNT + WLC). **프리셋 추가**를 누르고 이름을 적은 뒤, 넣을 역본 버튼을 눌러 고르세요. 프리셋마다 명령이 따로 생겨서 단축키도 따로 지정할 수 있어요.
+**프리셋**은 함께 쓰는 역본 조합에 이름을 붙인 거예요. 예: *한영 대조*(개역한글 + KJV), *원어 대조*(SBLGNT + WLC). **프리셋 추가**를 누르고 이름을 적은 뒤, 넣을 역본 버튼을 눌러 고르세요. 프리셋마다 명령이 따로 생겨서 단축키도 따로 지정할 수 있어요.
 
 - 구절 위에서 실행하면 → 프리셋 역본으로 바로 넣고,
 - 그 밖의 곳에서 실행하면 → 프리셋 역본이 선택된 검색 창이 열려요 (평소 넣을 역본은 바뀌지 않아요).
@@ -512,8 +513,8 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 | 영어 | King James Version (KJV) | bolls.life | 퍼블릭 도메인 | ✓ |
 | 영어 | World English Bible (WEB) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Berean Standard Bible (BSB) | bolls.life | 퍼블릭 도메인 | ✓ |
+| 영어 | English Standard Version (ESV) | bolls.life | © Crossway — 키 필요 없음, 개인 연구용 | — |
 | 영어 | New English Translation (NET) | NET Bible 공식 API | © Biblical Studies Press — 출처 표기 시 무료 인용 | ✓ |
-| 영어 | English Standard Version (ESV) | ESV 공식 API | © Crossway — 개인 무료 API 키 필요 | — |
 | 영어 | American Standard Version (ASV) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Young's Literal Translation (YLT) | bolls.life | 퍼블릭 도메인 | — |
 | 영어 | Literal Standard Version (LSV) | bolls.life | CC BY-SA 4.0 | — |
@@ -560,10 +561,12 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 ### 내 역본 고르기
 
-설정 맨 위에는 목록이 두 개 있어요.
+설정 화면은 일부러 짧게 만들었어요. 첫 화면에는 넣을 역본과 검색 창 동작만 있고, 나머지는 **더 보기**에서 한 번 눌러 들어가요 — *내 역본*, *노트에 들어가는 모양*(미리 보기 포함), *단축키와 프리셋*, *Logos · Accordance 링크*, *도움말*.
+
+첫 화면과 역본 관리는 이렇게 돼요.
 
 - **넣을 역본** — 구절을 찾으면 넣을 역본이에요. 이 순서대로 들어가요. 끌어서 순서를 바꾸고, 삭제로 빼고, **+** 로 *내 역본*에서 골라 더해요.
-- **내 역본** — 내가 쓰는 역본 전체예요. 역본마다 한 줄(언어 · 가져오는 곳)만 보여요. *넣을 역본*에 없는 역본도 검색 창의 *다른 역본 보기*에서 쓸 수 있어요. 처음 설치하면 개역한글, KJV, BSB, NET이 들어 있어요.
+- **내 역본** (*더 보기* 안) — 내가 쓰는 역본 전체예요. 역본마다 한 줄(언어 · 가져오는 곳)만 보여요. *넣을 역본*에 없는 역본도 검색 창의 *다른 역본 보기*에서 쓸 수 있어요. 처음 설치하면 개역한글, KJV, BSB, NET이 들어 있어요.
 
 - **역본 추가** — 목록 머리의 **+** 를 눌러 고르면 바로 추가돼요. 한국어, English, *직접 추가*(Accordance 모듈, bolls.life 코드, JSON 파일)로 묶여 있어요.
 - 끌어서 순서 바꾸기 — 이 목록의 순서를 바꿔요.
@@ -572,17 +575,16 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 
 개역개정, 공동번역, NIV, NASB 같은 역본은 무료로 가져올 수 있는 공개 소스가 없어요. 대신 [Accordance 모듈](#accordance-역본-연결하기-mac)이나 사용 권한이 있는 [JSON 파일](#다른-역본-추가하기)로 연결할 수 있습니다.
 
-## ESV와 NET
-
-**ESV**는 Crossway의 공식 [ESV API](https://api.esv.org)에서 가져와요. 비영리 용도라면 개인 키를 무료로 받을 수 있어요.
-
-1. [api.esv.org](https://api.esv.org)에서 무료 계정을 만들고 **Create an API Application**을 누르세요. 용도는 "Obsidian에서 개인 성경 공부"처럼 적으면 돼요.
-2. 발급된 API 키를 복사합니다.
-3. 설정 → Versedrop → *내 역본*에 ESV가 있는지 확인하고(뺐다면 + 메뉴에서 다시 추가), 목록 아래 ESV 항목의 **ESV API 키** 칸에 붙여 넣으면 검색 창에 ESV가 나타나요.
-
-Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500절까지 가져올 수 있어요. ESV 인용 아래에는 출처 문구와 esv.org 링크가 항상 붙고, Versedrop은 ESV 본문을 메모리에 500절 넘게 보관하지 않아요.
+## NET, NIV, ESV
 
 **NET**은 공식 [NET Bible API](https://labs.bible.org)에서 가져오며 키가 필요 없어요. NET 조건에 따라 제목의 "NET"이 netbible.org로 연결되고 출처 문구가 항상 붙어요.
+
+**ESV**는 + 메뉴(English)에 있고 키 없이 바로 써요. 새번역처럼 bolls.life에서 본문을 가져와요. © Crossway 저작권 역본이라 기본으로는 꺼 두었고, 인용할 때마다 출처 문구가 붙어요. 개인 연구와 설교 준비용으로 쓰세요.
+
+**NIV**는 Biblica가 사용 허락을 관리하는 역본이라 기본으로 넣지 않았어요. 이렇게 쓸 수 있어요.
+
+- **Accordance** — NIV 모듈을 가지고 계시면 [Accordance 모듈](#accordance-역본-연결하기-mac)로 추가하세요(예: `NIV11`). 본문은 내 Mac 안에서만 오가고, 맞는 출처 문구가 자동으로 붙어요.
+- **Logos 링크** — *Logos 역본*을 `NIV`로 정하면 구절 옆 링크가 NIV로 열려요.
 
 ## Accordance 역본 연결하기 (Mac)
 
@@ -592,7 +594,7 @@ Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500�
 
 **연결 방법:**
 
-1. 설정 → Versedrop → *내 역본* → **+** → **Accordance 모듈로 추가… (Mac)**
+1. 설정 → Versedrop → *더 보기* → *내 역본* → **+** → **Accordance 모듈로 추가… (Mac)**
 2. 입력하세요.
    - **이름** — 검색 창에 보일 이름. 예: `개역개정`, `ESV`
    - **Accordance 모듈** — Accordance 라이브러리나 텍스트 탭에 보이는 약어와 **똑같이** (대소문자, 하이픈 포함). 예: `ESVS`
@@ -621,7 +623,7 @@ Crossway 조건에 따라 비영리 용도로만 쓸 수 있고, 한 번에 500�
 
 Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법을 제공하지 않고, 리소스도 암호화되어 있어서 Logos 본문은 가져올 수 없어요. 대신 구절 제목 옆에 **내 Logos에서 바로 열리는 링크**를 붙일 수 있습니다. Accordance 링크도 같은 방식으로 붙일 수 있어요.
 
-1. 설정 → *Logos · Accordance 링크* → **링크 붙이기**에서 **Logos**, **Accordance**, **둘 다** 중 하나를 고릅니다.
+1. 설정 → Versedrop → *더 보기* → *Logos · Accordance 링크* → **링크 붙이기**에서 **Logos**, **Accordance**, **둘 다** 중 하나를 고릅니다.
 2. **Logos 역본** — Logos에서 열 역본 약어. 예: `ESV`, `NASB95`. 비워 두면 Logos의 기본 성경으로 열려요.
 3. **Accordance 링크 모듈** — 링크로 열 모듈 약어. 예: `ESVS`. 비워 두면 Accordance 기본 텍스트로 열려요. Accordance 모듈에서 가져온 구절은 자동으로 그 모듈로 연결됩니다.
 
@@ -661,7 +663,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 **JSON 파일** — 사용 권한이 있는 성경 JSON 파일을 연결해요. 경로를 직접 칠 필요가 없어요.
 
 - **컴퓨터에서 불러오기** → 파일을 고르면 저장 폴더(기본값 `Versedrop Bibles`)로 복사되고 자동으로 연결돼요.
-- **저장 폴더** — 불러온 파일을 둘 곳을 같은 창이나 설정 → Versedrop → *JSON 파일*에서 정해요. 경로를 직접 입력하거나(입력하면 폴더 목록이 떠요), 📁 버튼으로 고르거나, ＋ 버튼으로 새 폴더를 만들 수 있어요. 📁 고르기 창에서 없는 이름을 입력하고 Enter를 눌러도 바로 만들어져요. `자료/성경`처럼 하위 폴더도 되고, 없는 폴더는 불러올 때 자동으로 만들어져요. 비워 두면 볼트 맨 위에 저장돼요.
+- **저장 폴더** — 불러온 파일을 둘 곳을 같은 창이나 설정 → Versedrop → *더 보기* → *내 역본* → *JSON 파일*에서 정해요. 경로를 직접 입력하거나(입력하면 폴더 목록이 떠요), 📁 버튼으로 고르거나, ＋ 버튼으로 새 폴더를 만들 수 있어요. 📁 고르기 창에서 없는 이름을 입력하고 Enter를 눌러도 바로 만들어져요. `자료/성경`처럼 하위 폴더도 되고, 없는 폴더는 불러올 때 자동으로 만들어져요. 비워 두면 볼트 맨 위에 저장돼요.
 - **볼트에서 고르기**(🔍) → 이미 볼트에 있는 JSON 파일을 이름으로 찾아 골라요. 입력 칸에 글자를 치기 시작해도 자동완성돼요.
 
 연결하면 Versedrop이 파일을 확인해서 몇 장·몇 절을 읽었는지, 구약·신약 중 어디가 들어 있는지 알려 줘요. 네 가지 형식을 인식해요.
@@ -690,7 +692,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 설교 원고나 묵상 노트에 몇 구절을 출처와 함께 넣는 정도는 일반적인 인용 범위에 해당해요. 기준은 내 글이 중심일 것, 출처를 밝힐 것, 지나치게 많이 옮기지 않을 것이에요. Versedrop은 이 범위 안에서 쓰도록 돕습니다.
 
-- **출처 표기** (설정 → *삽입 형식*): *저작권 역본만*(기본)은 저작권 역본 아래에 출처 문구를 붙이고, *모든 역본*은 공개 역본에도 표시를 붙이고, *붙이지 않음*은 끕니다. 다만 ESV와 NET은 이용 조건상 항상 붙어요.
+- **출처 표기** (설정 → Versedrop → *더 보기* → *노트에 들어가는 모양*): *저작권 역본만*(기본)은 저작권 역본 아래에 출처 문구를 붙이고, *모든 역본*은 공개 역본에도 표시를 붙이고, *붙이지 않음*은 끕니다. 다만 NET은 이용 조건상 항상 붙어요.
 - **인용 분량 경고**: 저작권 역본을 한 번에 50절(조정 가능, 0이면 끄기)보다 많이 넣으면 알려 줘요.
 - 검색 창에서도 저작권 역본 카드 아래에 출처 문구가 보여요.
 
@@ -743,25 +745,25 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 |---|---|
 | "…에 해당하는 책을 찾지 못했어요" | 다른 표기로 입력해 보세요: `요`, `요한복음`, `John`, `Jn` |
 | 카드에 네트워크 오류 | 인터넷 연결을 확인하고 다시 검색하세요. |
-| 본문이 이상하거나 예전 내용 | 설정 → **캐시 비우기** |
+| 본문이 이상하거나 예전 내용 | 설정 → Versedrop → *더 보기* → *도움말* → **캐시 비우기** |
 | "Obsidian이 Accordance를 제어할 권한이 없어요" | 시스템 설정 → 개인정보 보호 및 보안 → 자동화 → Obsidian → Accordance 켜기 |
 | "Accordance가 … 모듈에서 본문을 찾지 못했어요" | 모듈 약어를 Accordance에 보이는 그대로(대소문자·하이픈 포함) 입력했는지 확인하세요. |
 | "Accordance가 … 모듈에서 본문을 찾지 못했어요" | 모듈 약어를 Accordance에 보이는 그대로(대소문자·하이픈 포함) 입력했는지 확인하세요. |
 | Accordance가 처음에 느림 | Accordance가 실행되는 중이에요. 다음부터는 빨라지고, 미리 열어 두면 더 빨라요. |
 | Accordance 버튼이 회색 | Mac의 Obsidian 데스크톱 앱에서만 쓸 수 있어요. |
 | 역본이 검색 창에 안 보임 | *내 역본* 목록에 있는지, 맞는 언어 탭인지 확인하세요. 직접 추가한 역본은 이름과 코드/경로/모듈을 모두 채워야 나타나요. |
-| ESV가 안 보임 | *내 역본*에 ESV를 추가하고 바로 아래 **ESV API 키**에 키를 넣어 주세요. |
-| "ESV API 키가 올바르지 않아요" | api.esv.org의 내 Application 페이지에서 키를 다시 복사해 넣으세요. |
 | Accordance 역본에 출처 문구가 안 붙음 | 그 줄의 **출처 문구** 칸에 직접 입력하세요. |
 
 플러그인 설정 화면 맨 아래 **도움말**에도 같은 내용이 정리되어 있어요.
 
 ## 네트워크와 시스템 접근
 
-- **네트워크:** 본문은 [bolls.life](https://bolls.life), [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org)(HelloAO에서 추가한 역본, 그리고 bolls.life에 접속이 안 될 때 기본 공개 역본의 예비 소스), 그리고 키를 넣은 경우에만 [ESV API](https://api.esv.org)에서 가져와요. 보내는 정보는 역본과 책·장(또는 구절)뿐이고, ESV 키는 api.esv.org에만 전송돼요. HelloAO 역본 찾기 창을 열면 역본 목록을 내려받아요.
+- **네트워크:** 본문은 [bolls.life](https://bolls.life), [NET Bible API](https://labs.bible.org), [HelloAO](https://bible.helloao.org)(HelloAO에서 추가한 역본, 그리고 bolls.life에 접속이 안 될 때 기본 공개 역본의 예비 소스)에서 가져와요. 보내는 정보는 역본과 책·장(또는 구절)뿐이에요. HelloAO 역본 찾기 창을 열면 역본 목록을 내려받아요.
 - **내 기기 안에서만:** JSON 파일과 Accordance 모듈은 내 기기에서 읽고, 인터넷으로 보내지 않아요.
 - **Accordance (macOS):** Node의 `execFile`로 `osascript`를 실행해(셸 없이) 고정된 AppleScript로 Accordance에 본문을 요청해요. 모듈과 구절은 인자로만 넘겨요. Mac에서 Accordance 역본을 쓸 때만 불러오고, 처음 한 번 macOS가 권한을 물어봅니다.
+- **볼트 접근:** JSON 파일 고르기 창은 볼트의 `.json` 파일 목록을, 폴더 고르기 창은 폴더 목록을 그 창이 열려 있을 때만 봐요. 읽는 건 연결한 JSON 파일뿐이고, 쓰는 건 넣은 구절과 저장 폴더로 불러온 JSON 파일뿐이에요.
 - 가져온 본문은 Obsidian을 다시 시작할 때까지 메모리에 임시 저장돼요.
+- **릴리스 파일**은 GitHub Actions가 이 저장소의 코드로 직접 빌드하고, `main.js`·`styles.css`에 [빌드 증명(artifact attestation)](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds)을 붙여요. `gh attestation verify main.js --repo b2winus/versedrop`로 확인할 수 있어요.
 
 ---
 

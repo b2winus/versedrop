@@ -22,8 +22,6 @@ export interface VersedropSettings extends FormatOptions {
 	presets: Preset[];
 	/** Display order of translation ids (built-in and custom) */
 	order: string[];
-	/** Personal ESV API key (api.esv.org) */
-	esvApiKey: string;
 	/** Vault folder that Bible JSON files imported from the computer are copied into */
 	importFolder: string;
 	/** Warn when a copyrighted translation is quoted beyond this many verses at once (0 = never) */
@@ -53,7 +51,6 @@ export const DEFAULT_SETTINGS: VersedropSettings = {
 	logosVersion: "",
 	accordanceModule: "",
 	citations: "copyrighted",
-	esvApiKey: "",
 	quoteWarn: 50,
 	importFolder: "Versedrop Bibles",
 };

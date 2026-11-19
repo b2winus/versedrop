@@ -263,12 +263,16 @@ export class VerseModal extends Modal {
 	}
 
 	private updateInsertState(): void {
-		this.insertBtn.disabled = !this.cards.some((c) => c.checkbox.checked && c.verses && c.verses.length);
+		const n = this.cards.filter((c) => c.checkbox.checked && c.verses && c.verses.length).length;
+		this.insertBtn.disabled = n === 0;
+		// "Insert (2)" — how many translations go in.
+		this.insertBtn.setText(n > 1 ? `${t.insert} (${n})` : t.insert);
 	}
 
 	private showMessage(text: string, isError: boolean): void {
 		this.messageEl.setText(text);
 		this.messageEl.toggleClass("is-error", isError);
+		this.messageEl.toggleClass("is-ref", !isError && !!this.ref && text !== t.loading);
 	}
 
 	/** "Insert right away": fetch the translations to insert and insert without showing cards. */
