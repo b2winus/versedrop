@@ -1,3 +1,4 @@
+import type { UiChoice } from "./i18n";
 import { FormatOptions } from "./format";
 import { BUILT_IN_TRANSLATIONS, Lang, Translation } from "./sources";
 
@@ -17,6 +18,8 @@ export interface VersedropSettings extends FormatOptions {
 	picked: string[];
 	/** After a search: preview the translations to insert, or insert them right away */
 	searchMode: "preview" | "instant";
+	/** Interface language: "auto" follows Obsidian */
+	uiLanguage: UiChoice;
 	custom: Translation[];
 	/** Translation sets that get their own command */
 	presets: Preset[];
@@ -37,6 +40,7 @@ export const DEFAULT_SETTINGS: VersedropSettings = {
 	enabled: BUILT_IN_TRANSLATIONS.filter((tr) => tr.defaultOn).map((tr) => tr.id),
 	picked: ["KRV", "KJV"],
 	searchMode: "preview",
+	uiLanguage: "auto",
 	custom: [],
 	presets: [],
 	order: BUILT_IN_TRANSLATIONS.filter((tr) => tr.defaultOn).map((tr) => tr.id),

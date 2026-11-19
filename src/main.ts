@@ -3,7 +3,7 @@ import { AccordanceBridge } from "./accordance";
 import { clearCustomBookNames, registerBookNames } from "./books";
 import { formatPassages, Passage } from "./format";
 import { removeCommand } from "./hotkeys";
-import { t, uiLang } from "./i18n";
+import { setUiLanguage, t, uiLang } from "./i18n";
 import { VerseModal } from "./modal";
 import { BibleReference, parseReference } from "./reference";
 import { DEFAULT_SETTINGS, Preset, sortByOrder, VersedropSettings } from "./settings";
@@ -144,6 +144,8 @@ export default class VersedropPlugin extends Plugin {
 	async loadSettings(): Promise<void> {
 		const saved = ((await this.loadData()) ?? {}) as Partial<VersedropSettings>;
 		this.settings = { ...DEFAULT_SETTINGS, ...saved };
+		// Pick the interface language first: commands, defaults and messages below use it.
+		setUiLanguage(this.settings.uiLanguage);
 		this.settings.custom = this.settings.custom ?? [];
 		this.settings.presets = this.settings.presets ?? [];
 		// 0.3.x stored a single "language" (ko / en / both)

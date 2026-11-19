@@ -53,7 +53,7 @@ Search a Bible reference and drop the passage into your note — from free trans
 - **Backup source:** if bolls.life is unreachable, built-in public-domain texts (KJV, WEB, BSB …) are fetched from HelloAO instead
 - Add any translation from bolls.life by code, or from a JSON file in your vault
 - Callout, blockquote or plain text output, with options for verse numbers, line breaks and bilingual grouping
-- Interface and built-in help in English, Korean and Chinese (simplified and traditional), following Obsidian's language setting
+- Interface and built-in help in English, Korean and Chinese (simplified and traditional) — follows Obsidian's language, or pick one under Settings → General → *Interface language*
 
 ## Installation
 
@@ -424,7 +424,7 @@ The plugin's settings tab also has a **Help** section at the bottom covering the
 - **예비 소스:** bolls.life에 접속이 안 되면 기본 공개 역본(KJV, WEB, BSB 등)을 HelloAO에서 대신 가져와요
 - bolls.life 역본 코드나 볼트 안 JSON 파일로 역본 추가
 - 콜아웃·인용문·일반 텍스트 형식, 절 번호, 줄바꿈, 한영 병기 묶기 옵션
-- Obsidian 언어 설정에 따라 한국어·영어·중국어(간체·번체) 화면과 도움말 제공
+- 한국어·영어·중국어(간체·번체) 화면과 도움말 — Obsidian 언어를 따르거나, 설정 → 기본 설정 → *화면 언어*에서 직접 골라요
 
 ## 설치하기
 
@@ -769,7 +769,7 @@ Logos는 외부 프로그램이 성경 본문을 읽을 수 있는 공식 방법
 
 # 中文
 
-Versedrop 是一个 Obsidian 插件：输入经文出处，就能把经文插入笔记。界面会跟随 Obsidian 的语言设置显示简体中文或繁体中文。
+Versedrop 是一个 Obsidian 插件：输入经文出处，就能把经文插入笔记。界面默认跟随 Obsidian 的语言；也可以在 设置 → Versedrop → 常规 → *界面语言* 中直接选择简体中文或繁體中文。
 
 **快速开始**
 

@@ -154,6 +154,11 @@ const ko = {
 	sPageKeysDesc: "자주 쓰는 명령에 단축키를 정하고, 역본 묶음(프리셋)을 만들어요.",
 	sPresetCount: (n: number) => `프리셋 ${n}개`,
 	sHelpDesc: "사용법, 역본 출처, 저작권, Accordance 연결 안내",
+	sGeneral: "기본 설정",
+	sUiLanguage: "화면 언어",
+	sUiLanguageDesc: "Versedrop 설정·검색 창·도움말에 쓸 언어예요.",
+	sUiLangAuto: "Obsidian 언어 따르기",
+	sUiLangRestart: "명령 팔레트의 명령 이름은 Obsidian을 다시 시작하면 바뀌어요.",
 	sMyTranslations: "내 역본",
 	sMyTranslationsDesc: "검색 창에 나올 역본이에요. 끌어서 순서 바꾸기 · ✎ 편집 · 삭제로 빼기. + 로 추가해요.",
 	sNoTranslations: "아직 역본이 없어요. + 를 눌러 추가해 주세요.",
@@ -473,6 +478,11 @@ const en: typeof ko = {
 	sPageKeysDesc: "Set hotkeys for the commands you use, and make translation sets (presets).",
 	sPresetCount: (n: number) => (n === 1 ? "1 preset" : `${n} presets`),
 	sHelpDesc: "How to use Versedrop, where the text comes from, copyright and Accordance",
+	sGeneral: "General",
+	sUiLanguage: "Interface language",
+	sUiLanguageDesc: "Language for Versedrop's settings, search window and help.",
+	sUiLangAuto: "Same as Obsidian",
+	sUiLangRestart: "Command names in the command palette change after Obsidian restarts.",
 	sMyTranslations: "My translations",
 	sMyTranslationsDesc: "Translations shown in the search window. drag to reorder · ✎ edit · delete to remove. Add with +.",
 	sNoTranslations: "No translations yet. Click + to add one.",
@@ -650,8 +660,16 @@ const en: typeof ko = {
 export type Strings = typeof ko;
 export type UiLang = "ko" | "en" | "zh" | "zh-TW";
 
-/** Interface language from Obsidian's setting: Korean, Simplified / Traditional Chinese, else English. */
+/** "auto" follows Obsidian's language; the others pick the interface language directly. */
+export type UiChoice = "auto" | UiLang;
+let chosen: UiLang | null = null;
+
+/** Interface language: the one picked in Versedrop's settings, else Obsidian's (Korean, Chinese, else English). */
 export function uiLang(): UiLang {
+	return chosen ?? obsidianLang();
+}
+
+function obsidianLang(): UiLang {
 	let l = "";
 	try {
 		l = (getLanguage() ?? "").toLowerCase();
@@ -665,7 +683,14 @@ export function uiLang(): UiLang {
 }
 
 const STRINGS: Record<UiLang, Strings> = { ko, en, zh: zhCN, "zh-TW": zhTW };
-export const t: Strings = STRINGS[uiLang()];
+/** Current interface strings. A live binding: setUiLanguage() swaps it for every module. */
+export let t: Strings = STRINGS[uiLang()];
+
+/** Switches the interface language (from the "Interface language" setting). */
+export function setUiLanguage(choice: UiChoice | undefined): void {
+	chosen = choice && choice !== "auto" && choice in STRINGS ? choice : null;
+	t = STRINGS[uiLang()];
+}
 
 /**
  * Display name of a language code: Versedrop's own name, then the name stored with the translation,

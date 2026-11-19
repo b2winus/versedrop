@@ -22,7 +22,7 @@ import {
 import type VersedropPlugin from "./main";
 import { accordanceAvailable } from "./accordance";
 import { knownCitation } from "./citations";
-import { HelpTopic, langLabel, t, uiLang } from "./i18n";
+import { HelpTopic, langLabel, setUiLanguage, t, UiChoice, uiLang } from "./i18n";
 import { formatPassages } from "./format";
 import { HelloAoBrowser } from "./helloao-browser";
 import { hotkeysFor, openHotkeySettings } from "./hotkeys";
@@ -306,6 +306,13 @@ export class VersedropSettingTab extends PluginSettingTab {
 		}
 		s[key] = value;
 		await this.plugin.saveSettings();
+		if (key === "uiLanguage") {
+			// Redraw the whole page in the new language.
+			setUiLanguage(value as UiChoice);
+			this.update();
+			new Notice(t.sUiLangRestart, 6000);
+			return;
+		}
 		this.refreshDomState();
 		// Redraw just the preview, so typing in a text field keeps its focus.
 		if (LOOK_KEYS.has(key)) this.drawPreview();
@@ -352,16 +359,27 @@ export class VersedropSettingTab extends PluginSettingTab {
 				},
 				addItem: { name: t.sInsertAdd, action: (el) => this.openPickMenu(el) },
 			},
-			// ── 2. How the search window behaves ─────────────────────
+			// ── 2. General: search window behaviour, interface language ──
 			{
 				type: "group",
-				heading: t.sSearchWindow,
+				heading: t.sGeneral,
 				items: [
 					{
 						name: t.sSearchMode,
 						desc: t.sSearchModeDesc,
 						aliases: ["insert", "삽입", "바로", "preview"],
 						control: { type: "dropdown", key: "searchMode", options: { preview: t.sModePreview, instant: t.sModeInstant } },
+					},
+					{
+						name: t.sUiLanguage,
+						desc: t.sUiLanguageDesc,
+						aliases: ["language", "언어", "语言", "語言", "한국어", "English", "中文"],
+						// Each language is written in itself, so it can be found whatever the current language.
+						control: {
+							type: "dropdown",
+							key: "uiLanguage",
+							options: { auto: t.sUiLangAuto, ko: "한국어", en: "English", zh: "简体中文", "zh-TW": "繁體中文" },
+						},
 					},
 				],
 			},
